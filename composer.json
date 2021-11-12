@@ -24,5 +24,6 @@
             "Leaf\\": "src"
         }
     },
-    "minimum-stability": "stable"
+    "minimum-stability": "dev",
+	"prefer-stable": true
 }
