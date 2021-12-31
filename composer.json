@@ -27,6 +27,7 @@
     "minimum-stability": "dev",
 	"prefer-stable": true,
     "require": {
-        "ext-mysqli": "*"
+        "ext-mysqli": "*",
+        "leafs/form": "^1.0"
     }
 }
