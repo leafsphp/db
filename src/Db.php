@@ -234,25 +234,6 @@ class Db extends Db\Core
         return $this;
     }
 
-    // /**
-    //  * Hide particular fields from the final value returned
-    //  * 
-    //  * @param mixed $values The value(s) to hide
-    //  */
-    // public function hidden(...$values): self
-    // {
-    //     foreach ($values as $value) {
-    //         if (is_array($value)) {
-    //             $this->hidden = $value;
-    //             break;
-    //         }
-
-    //         $this->hidden[] = $value;
-    //     }
-
-    //     return $this;
-    // }
-
     /**
      * Search a db table for a value
      * 
