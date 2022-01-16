@@ -22,12 +22,17 @@
     "autoload": {
         "psr-4": {
             "Leaf\\": "src"
-        }
+        },
+        "files": [
+			"src/functions.php"
+		]
     },
     "minimum-stability": "dev",
 	"prefer-stable": true,
     "require": {
-        "ext-mysqli": "*",
-        "leafs/form": "^1.0"
+        "ext-mysqli": "*"
+    },
+    "require-dev": {
+        "pestphp/pest": "^1.21"
     }
 }
