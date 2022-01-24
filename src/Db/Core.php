@@ -281,10 +281,10 @@ class Core
                     if (!isset($state['params'][$unique])) {
                         trigger_error("$unique not found, Add $unique to your insert or update items or check your spelling.");
                     }
-                }
 
-                if ($this->connection->query("SELECT * FROM {$state['table']} WHERE $unique='{$state['params'][$unique]}'")->fetch(\PDO::FETCH_ASSOC)) {
-                    $this->errors[$unique] = "$unique already exists";
+                    if ($this->connection->query("SELECT * FROM {$state['table']} WHERE $unique='{$state['params'][$unique]}'")->fetch(\PDO::FETCH_ASSOC)) {
+                        $this->errors[$unique] = "$unique already exists";
+                    }
                 }
 
                 if (count($this->errors)) {

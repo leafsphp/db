@@ -8,11 +8,10 @@ if (!function_exists('db') && class_exists('Leaf\App')) {
      */
     function db()
     {
-        if (!(app()->config('db.instance'))) {
-            $db = new \Leaf\Db;
-            app()->config('db.instance', $db);
+        if (!(\Leaf\Config::get("db.instance"))) {
+            \Leaf\Config::set("db.instance", new \Leaf\Db());
         }
 
-        return app()->config('db.instance');
+        return \Leaf\Config::get("db.instance");
     }
 }

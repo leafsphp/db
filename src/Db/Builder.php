@@ -91,13 +91,12 @@ class Builder
                 static::$bindings[] = $value;
             }
         } else {
-            $values = array_values($condition);
-            $conditionQuery = http_build_query($condition, '', " $operation ");
-            $query .= str_replace($values, '?', $conditionQuery);
-
-            if ($comparator !== "=") {
-                $query = str_replace("=", $comparator, $query);
+            foreach ($condition as $k => $v) {
+                $query .=  "$k$comparator? $operation ";
             }
+
+            $values = array_values($condition);
+            $query = rtrim($query, " $operation ");
 
             static::$bindings = array_merge(static::$bindings, $values);
         }
@@ -151,7 +150,7 @@ class Builder
                 $rebuild[$k] = '?';
             }
 
-            $query .= str_replace('%3F', '?', http_build_query($rebuild, '', ' AND '));
+            $query .= str_replace('%3F', '?', http_build_query($rebuild, '', ', '));
             static::$bindings = array_values($params);
         }
 
