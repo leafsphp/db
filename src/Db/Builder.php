@@ -150,7 +150,7 @@ class Builder
                 $rebuild[$k] = '?';
             }
 
-            $query .= str_replace('%3F', '?', http_build_query($rebuild, '', ' AND '));
+            $query .= str_replace('%3F', '?', http_build_query($rebuild, '', ', '));
             static::$bindings = array_values($params);
         }
 
