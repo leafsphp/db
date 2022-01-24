@@ -92,7 +92,7 @@ class Builder
             }
         } else {
             foreach ($condition as $k => $v) {
-                $query .=  "$k $comparator ? $operation ";
+                $query .=  "$k$comparator? $operation ";
             }
 
             $values = array_values($condition);
