@@ -21,7 +21,7 @@ class Core
     protected $config = [
         'dbtype' => 'mysql',
         'charset' => null,
-        'port' => null,
+        'port' => '3306',
         'unixSocket' => null,
         'host' => '127.0.0.1',
         'username' => 'root',
@@ -76,14 +76,14 @@ class Core
 
     /**
      * Query result
-     * 
+     *
      * @var \PDOStatement
      */
     protected $queryResult;
 
     /**
      * Initialize leaf db with a database connection
-     * 
+     *
      * @param string|array $host Host Name or full config
      * @param string $dbname Database name
      * @param string $user Database username
@@ -93,7 +93,7 @@ class Core
     public function __construct(
         $host = '',
         string $dbname = '',
-        string $user = '',
+        string $user = 'root',
         string $password = '',
         string $dbtype = 'mysql'
     ) {
@@ -106,7 +106,7 @@ class Core
 
     /**
      * Connect to database
-     * 
+     *
      * @param string|array $host Host Name or full config
      * @param string $dbname Database name
      * @param string $user Database username
@@ -115,21 +115,34 @@ class Core
      * @param array $pdoOptions Options for PDO connection
      */
     public function connect(
-        $host = '',
+        $host = '127.0.0.1',
         string $dbname = '',
-        string $user = '',
+        string $user = 'root',
         string $password = '',
-        string $dbtype = '',
+        string $dbtype = 'mysql',
         array $pdoOptions = []
     ): \PDO {
+        if (is_array($host)) {
+            $this->config($host);
+        } else {
+            $this->config([
+                'host' => $host,
+                'dbname' => $dbname,
+                'username' => $user,
+                'password' => $password,
+                'dbtype' => $dbtype,
+            ]);
+        }
+
+        // response()
+
         try {
-            $dbtype = $dbtype !== '' ? $dbtype : $this->config('dbtype');
-            $dsn = $this->dsn($host, $dbname, $dbtype);
+            $dbtype = $this->config('dbtype');
 
             $connection = new \PDO(
-                $dsn,
-                $dbtype === 'sqlite' ? null : ($user !== '' ? $user : $this->config('username')),
-                $dbtype === 'sqlite' ? null : ($password !== '' ? $password : $this->config('password')),
+                $this->dsn(),
+                $dbtype === 'sqlite' ? null : $this->config('username'),
+                $dbtype === 'sqlite' ? null : $this->config('password'),
                 array_merge(
                     $this->config('pdoOptions') ?? [],
                     $pdoOptions
@@ -147,33 +160,39 @@ class Core
 
     /**
      * Connect to database using environment variables
-     * 
+     *
      * @param array $pdoOptions Options for PDO connection
      */
     public function autoConnect(array $pdoOptions = []): \PDO
     {
         return $this->connect(
-            getenv('DB_HOST'),
-            getenv('DB_DATABASE'),
-            getenv('DB_USERNAME'),
-            getenv('DB_PASSWORD'),
-            getenv('DB_CONNECTION') ? getenv('DB_CONNECTION') : 'mysql',
-            $pdoOptions,
+            [
+                'dbtype' => getenv('DB_CONNECTION') ? getenv('DB_CONNECTION') : 'mysql',
+                'charset' => getenv('DB_CHARSET'),
+                'port' => getenv('DB_PORT') ? getenv('DB_PORT') : '3306',
+                'host' => getenv('DB_HOST') ? getenv('DB_HOST') : '127.0.0.1',
+                'username' => getenv('DB_USERNAME') ? getenv('DB_USERNAME') : 'root',
+                'password' => getenv('DB_PASSWORD') ? getenv('DB_PASSWORD') : '',
+                'dbname' => getenv('DB_DATABASE'),
+            ],
+            '',
+            '',
+            '',
+            '',
+            $pdoOptions
         );
     }
 
-    protected function dsn(
-        $host = '',
-        string $dbname = '',
-        string $dbtype = ''
-    ): string {
+    protected function dsn(): string
+    {
+        $dbtype = $this->config('dbtype');
+        $dbname = $this->config('dbname');
+        $host = $this->config('host');
+
         if ($dbtype === 'sqlite') {
             $dsn = "sqlite:$dbname";
         } else {
-            $dbhost = $host !== '' ? $host : $this->config('host');
-            $dbtype = $dbtype !== '' ? $dbtype : 'mysql';
-
-            $dsn = "$dbtype:host=$dbhost";
+            $dsn = "$dbtype:host=$host";
 
             if ($dbname !== '') $dsn .= ";dbname=$dbname";
             if ($this->config('port')) $dsn .= ';port=' . $this->config('port');
@@ -186,7 +205,7 @@ class Core
 
     /**
      * Return the database connection
-     * 
+     *
      * @param \PDO $connection Manual instance of PDO connection
      */
     public function connection(\PDO $connection = null)
@@ -205,7 +224,7 @@ class Core
 
     /**
      * Set the current db table for operations
-     * 
+     *
      * @param string $table Table to perform database operations on
      */
     public function table(string $table): self
@@ -221,15 +240,14 @@ class Core
     {
         if (class_exists('Leaf\App') && function_exists('app')) {
             if (is_array($name)) {
-                foreach ($name as $key => $v) {
-                    app()->config("db.$key", $v);
-                }
+                $this->config = array_merge($this->config, $name);
+                app()->config('db', array_merge(app()->config('db'), $this->config));
             } else {
                 return app()->config("db.$name", $value);
             }
         } else {
             if (is_array($name)) {
-                $this->config = array_merge($name, $this->config);
+                $this->config = array_merge($this->config, $name);
             } else {
                 if (!$value) {
                     return $this->config[$name];
@@ -242,7 +260,7 @@ class Core
 
     /**
      * Manually create a database query
-     * 
+     *
      * @param string $sql Full db query
      */
     public function query(string $sql): self
@@ -253,7 +271,7 @@ class Core
 
     /**
      * Bind parameters to a query
-     * 
+     *
      * @param array|string $data The data to bind to string
      */
     public function bind(...$bindings): self
@@ -267,8 +285,10 @@ class Core
      */
     public function execute()
     {
-        if ($this->connection === null) trigger_error('Initialise your database first with connect()');
-        
+        if ($this->connection === null) {
+            trigger_error('Initialise your database first with connect()');
+        }
+
         $state = $this->copyState();
         $this->clearState();
 
@@ -310,7 +330,7 @@ class Core
 
     /**
      * Get raw result of last query
-     * 
+     *
      * @return \PDOStatement
      */
     public function result()
@@ -408,10 +428,10 @@ class Core
     {
         $added = $this->added;
         $hidden = $this->hidden;
-        
+
         $this->execute();
 
-        $results = array_map(function ($result) use($hidden, $added) {
+        $results = array_map(function ($result) use ($hidden, $added) {
             if (count($hidden)) {
                 foreach ($hidden as $item) {
                     unset($result[$item]);
@@ -428,7 +448,7 @@ class Core
         if ($type == 'obj' || $type == 'object') {
             $results = (object) $results;
         }
-        
+
         return $results;
     }
 
