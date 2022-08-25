@@ -51,6 +51,28 @@ class Db extends Db\Core
     }
 
     /**
+     * Create database table
+     * 
+     * @param string $table The name of the database table to create
+     * @param array $fields The fields to create
+     */
+    public function createTable(string $table, array $fields = [])
+    {
+        $parsed = '';
+
+        if (count($fields) > 0) {
+            foreach ($fields as $k => $v) {
+                $parsed .=  "$k $v, ";
+            }
+
+            $parsed = rtrim($parsed, ', ');
+        }
+
+        $this->query("CREATE TABLE $table ($parsed);");
+        return $this;
+    }
+
+    /**
      * Add a find by id clause to query
      * 
      * @param string|int $id The id of the row to find
