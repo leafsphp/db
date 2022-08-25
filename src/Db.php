@@ -40,6 +40,17 @@ class Db extends Db\Core
     }
 
     /**
+     * Check if a database table exists
+     * 
+     * @return boolean true if the table exists
+     */
+    public function exists(string $table)
+    {
+        $schema = $this->select('INFORMATION_SCHEMA.SCHEMATA')->where('SCHEMA_NAME', $table)->all();
+        return count($schema) > 0;
+    }
+
+    /**
      * Add a find by id clause to query
      * 
      * @param string|int $id The id of the row to find
