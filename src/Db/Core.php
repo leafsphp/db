@@ -134,8 +134,6 @@ class Core
             ]);
         }
 
-        // response()
-
         try {
             $dbtype = $this->config('dbtype');
 
