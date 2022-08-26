@@ -73,6 +73,16 @@ class Db extends Db\Core
     }
 
     /**
+     * Drop a database table
+     * 
+     * @params string $table The name of the table to drop
+     */
+    public function dropTable(string $table)
+    {
+        return $this->query("DROP TABLE $table")->execute();
+    }
+
+    /**
      * Add a find by id clause to query
      * 
      * @param string|int $id The id of the row to find
