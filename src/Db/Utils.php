@@ -86,17 +86,4 @@ class Utils
     {
         return "$beginsWith%$endsWith";
     }
-
-    /**
-     * Check if a value is between a range
-     * 
-     * @param string $value1 The lower limit of the range to check
-     * @param string $value2 The upper limit of the range to check
-     * 
-     * @return string
-     */
-    public static function between(string $value1, string $value2)
-    {
-        return "BETWEEN $value1 AND $value2";
-    }
 }
