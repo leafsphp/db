@@ -44,7 +44,7 @@ class Db extends Db\Core
      * 
      * @return boolean true if the table exists
      */
-    public function exists(string $table)
+    public function tableExists(string $table)
     {
         $schema = $this->select('INFORMATION_SCHEMA.SCHEMATA')->where('SCHEMA_NAME', $table)->all();
         return count($schema) > 0;
