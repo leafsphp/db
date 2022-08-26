@@ -83,6 +83,14 @@ class Db extends Db\Core
     }
 
     /**
+     * Backup a database
+     */
+    public function backup(string $dbName, string $destination)
+    {
+        return $this->query("BACKUP DATABASE $dbName TO DISK = '$destination' WITH DIFFERENTIAL")->execute();
+    }
+
+    /**
      * Add a find by id clause to query
      * 
      * @param string|int $id The id of the row to find
@@ -184,12 +192,12 @@ class Db extends Db\Core
     }
 
     /**
-	 * Pass in parameters into your query
-	 * 
-	 * @param array|string $params Key or params to pass into query
+     * Pass in parameters into your query
+     * 
+     * @param array|string $params Key or params to pass into query
      * @param string|null $value Value for key 
-	 */
-	public function params($params): self
+     */
+    public function params($params): self
     {
         $this->query = Builder::params($this->query, $params);
         $this->bind(...(Builder::$bindings));
