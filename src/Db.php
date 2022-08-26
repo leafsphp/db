@@ -84,10 +84,15 @@ class Db extends Db\Core
 
     /**
      * Backup a database
+     * 
+     * @param string $dbName The name of the database to backup
+     * @param string $destination The path to backup database to
+     * @param string $withDifferential Whether to use differential backups or not
      */
-    public function backup(string $dbName, string $destination)
+    public function backup(string $dbName, string $destination, bool $withDifferential = false)
     {
-        return $this->query("BACKUP DATABASE $dbName TO DISK = '$destination' WITH DIFFERENTIAL")->execute();
+        return $this->query("BACKUP DATABASE $dbName TO DISK = '$destination' " .
+            $withDifferential ? 'WITH DIFFERENTIAL' : '')->execute();
     }
 
     /**
