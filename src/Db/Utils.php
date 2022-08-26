@@ -18,8 +18,10 @@ class Utils
      * 
      * @param array $array The array to flatten
      * @return bool $keys Use array keys or not
+     * 
+     * @return array
      */
-    public static function flatten(array $array, bool $keys = false): array
+    public static function flatten(array $array, bool $keys = false)
     {
         $parsed = [];
 
@@ -40,8 +42,10 @@ class Utils
      * Construct search that begins with a phrase in db
      * 
      * @param string $phrase The phrase to check
+     * 
+     * @return string
      */
-    public static function beginsWith(string $phrase): string
+    public static function beginsWith(string $phrase)
     {
         return "$phrase%";
     }
@@ -50,8 +54,10 @@ class Utils
      * Construct search that ends with a phrase in db
      * 
      * @param string $phrase The phrase to check
+     * 
+     * @return string
      */
-    public static function endsWith(string $phrase): string
+    public static function endsWith(string $phrase)
     {
         return "%$phrase";
     }
@@ -60,8 +66,10 @@ class Utils
      * Construct search that includes a phrase in db
      * 
      * @param string $phrase The phrase to check
+     * 
+     * @return string
      */
-    public static function includes(string $phrase): string
+    public static function includes(string $phrase)
     {
         return "%$phrase%";
     }
@@ -71,9 +79,24 @@ class Utils
      * 
      * @param string $beginsWith The beginning of the phrase to search
      * @param string $endsWith The end of the phrase to search
+     * 
+     * @return string
      */
     public static function word(string $beginsWith, string $endsWith): string
     {
         return "$beginsWith%$endsWith";
+    }
+
+    /**
+     * Check if a value is between a range
+     * 
+     * @param string $value1 The lower limit of the range to check
+     * @param string $value2 The upper limit of the range to check
+     * 
+     * @return string
+     */
+    public static function between(string $value1, string $value2)
+    {
+        return "BETWEEN $value1 AND $value2";
     }
 }
