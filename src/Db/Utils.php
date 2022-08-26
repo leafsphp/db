@@ -15,6 +15,9 @@ class Utils
 {
     /**
      * Flatten multidimensional array into a single array
+     * 
+     * @param array $array The array to flatten
+     * @return bool $keys Use array keys or not
      */
     public static function flatten(array $array, bool $keys = false): array
     {
@@ -34,33 +37,42 @@ class Utils
     }
 
     /**
-     * Construct search that begins with a phrase in db 
+     * Construct search that begins with a phrase in db
+     * 
+     * @param string $phrase The phrase to check
      */
-    public static function beginsWith($phrase): string
+    public static function beginsWith(string $phrase): string
     {
         return "$phrase%";
     }
 
     /**
-     * Construct search that ends with a phrase in db 
+     * Construct search that ends with a phrase in db
+     * 
+     * @param string $phrase The phrase to check
      */
-    public static function endsWith($phrase): string
+    public static function endsWith(string $phrase): string
     {
         return "%$phrase";
     }
 
     /**
-     * Construct search that includes a phrase in db 
+     * Construct search that includes a phrase in db
+     * 
+     * @param string $phrase The phrase to check
      */
-    public static function includes($phrase): string
+    public static function includes(string $phrase): string
     {
         return "%$phrase%";
     }
 
     /**
-     * Construct search that begins and ends with a phrase in db 
+     * Construct search that begins and ends with a phrase in db
+     * 
+     * @param string $beginsWith The beginning of the phrase to search
+     * @param string $endsWith The end of the phrase to search
      */
-    public static function word($beginsWith, $endsWith): string
+    public static function word(string $beginsWith, string $endsWith): string
     {
         return "$beginsWith%$endsWith";
     }
