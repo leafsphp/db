@@ -73,6 +73,19 @@ class Db extends Db\Core
     }
 
     /**
+     * Create database table
+     * 
+     * @param string $table The name of the database table to create
+     * @param array $fields The fields to create
+     */
+    public function createTableIfNotExists(string $table, array $fields = [])
+    {
+        $this->createTable($table, $fields);
+        $this->query(str_replace('CREATE TABLE', 'CREATE TABLE IF NOT EXISTS', $this->query));
+        return $this;
+    }
+
+    /**
      * Drop a database table
      * 
      * @params string $table The name of the table to drop
