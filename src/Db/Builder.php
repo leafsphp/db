@@ -46,6 +46,27 @@ class Builder
     }
 
     /**
+     * Group query results by a column
+     * 
+     * @param string $query The query to modify (if any)
+     * @param string $column The column to group results by
+     * @author Milos Lukic <https://github.com/iammiloslukic>
+     */
+    public static function groupBy(
+        string $query,
+        string $column
+    ): string {
+        if (strpos($query, 'GROUP BY') === false) {
+            $query .= " GROUP BY $column";
+        } else {
+            $parts = explode('GROUP BY', $query);
+            $query = implode("GROUP BY $column", $parts);
+        }
+
+        return $query;
+    }
+
+    /**
      * Limit query to specific number of values to return
      * 
      * @param string $query The query to modify (if any)

@@ -150,6 +150,18 @@ class Db extends Db\Core
     }
 
     /**
+     * Group query results by a column
+     * 
+     * @param string $column The column to group results by
+     * @author Milos Lukic <https://github.com/iammiloslukic>
+     */
+    public function groupBy($column)
+    {
+        $this->query = Builder::groupBy($this->query, $column);
+        return $this;
+    }
+
+    /**
      * Limit query items by a specific number
      * 
      * @param string|number $limit The number to limit by
