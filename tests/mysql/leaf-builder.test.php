@@ -19,3 +19,12 @@ it('orders results in descending order', function () {
     expect(count($users))->toBe(2);
     expect($users[1]['created_at'])->toBeLessThan($users[0]['created_at']);
 });
+
+it('orders by dummy name and count', function () {
+    $db = new \Leaf\Db();
+    $db->connect('sql7.freemysqlhosting.net', 'sql7600346', 'sql7600346', 'l87WSttrMv');
+
+    $data = $db->select('test', 'name, COUNT(*)')->groupBy("created_at")->all();
+
+    expect(count($data))->toBe(2);
+});
