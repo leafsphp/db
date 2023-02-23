@@ -289,7 +289,7 @@ class Core
      *
      * @param array|string $data The data to bind to string
      */
-    public function bind(...$bindings): self
+    public function bind($bindings): self
     {
         $this->bindings = $bindings;
 
