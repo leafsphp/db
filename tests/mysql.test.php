@@ -20,17 +20,38 @@ beforeAll(function () {
     mysqli_close($conn);
 });
 
-test('connects to database', function () {
-    $success = 'new';
+it('connects to database', function () {
+    $success = false;
 
     try {
         $db = new \Leaf\Db();
-        $db->connect('sql7.freemysqlhosting.net', 'sql7600346', 'sql7600346', 'l87WSttrMv');
+        expect($db->connect('sql7.freemysqlhosting.net', 'sql7600346', 'sql7600346', 'l87WSttrMv'))
+            ->toBeInstanceOf(\PDO::class);
+        $db->close();
+
         $success = true;
     } catch (\Throwable $th) {
-        echo $th->getMessage();
-        $success = false;
     }
 
     expect($success)->toBeTrue();
+});
+
+it('inserts dummy user into `test` table', function () {
+    $success = false;
+    $db = new \Leaf\Db();
+    $db->connect('sql7.freemysqlhosting.net', 'sql7600346', 'sql7600346', 'l87WSttrMv');
+
+    try {
+        $db->insert('test')
+            ->params([
+                'name' => 'Name',
+                'email' => 'mail@mail.com',
+                'password' => 'testing123',
+            ])
+            ->execute();
+        $success = true;
+    } catch (\Throwable $th) {
+    }
+
+	expect($success)->toBeTrue();
 });
