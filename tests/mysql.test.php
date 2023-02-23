@@ -55,3 +55,15 @@ it('inserts dummy user into `test` table', function () {
 
 	expect($success)->toBeTrue();
 });
+
+it('selects dummy user from `test` table', function () {
+	$db = new \Leaf\Db();
+	$db->connect('sql7.freemysqlhosting.net', 'sql7600346', 'sql7600346', 'l87WSttrMv');
+
+	$user = $db->select('test')
+		->where('name', 'Name')
+		->first();
+
+	expect($user['name'])->toBe('Name');
+	expect($user['email'])->toBe('mail@mail.com');
+});
