@@ -1,8 +1,7 @@
 <?php
 
 beforeAll(function () {
-    // using mysqli just for wider support
-    $conn = mysqli_connect('sql7.freemysqlhosting.net', 'sql7600346', 'l87WSttrMv', 'sql7600346');
+    $pdo = new \PDO('mysql:host=sql7.freemysqlhosting.net;dbname=sql7600346', 'sql7600346', 'l87WSttrMv');
 
     $query = '
 		DROP TABLE IF EXISTS `test`;
@@ -16,8 +15,8 @@ beforeAll(function () {
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 	';
 
-    mysqli_multi_query($conn, $query);
-    mysqli_close($conn);
+    $pdo->exec($query);
+    $pdo = null;
 });
 
 it('connects to database', function () {
