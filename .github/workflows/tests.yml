@@ -7,8 +7,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [windows-latest, ubuntu-latest, macos-latest]
-        php: ['7.4', '8.0', '8.1']
+        os: [ubuntu-latest, macos-latest]
+        php: ['7.4', '8.0', '8.1', '8.2']
       fail-fast: true
       max-parallel: 1
 
