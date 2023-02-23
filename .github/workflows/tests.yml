@@ -22,7 +22,6 @@ jobs:
       uses: shivammathur/setup-php@v2
       with:
         php-version: ${{ matrix.php }}
-        extensions: mysqli
         tools: composer:v2
         coverage: xdebug
 

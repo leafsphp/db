@@ -29,9 +29,6 @@
   },
   "minimum-stability": "dev",
   "prefer-stable": true,
-  "require": {
-    "ext-mysqli": "*"
-  },
   "require-dev": {
     "pestphp/pest": "^1.21",
     "leafs/alchemy": "^1.0",
