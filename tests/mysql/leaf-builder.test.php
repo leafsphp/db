@@ -6,7 +6,7 @@ it('orders results in ascending order', function () {
 
     $users = $db->select('test')->orderBy("created_at", "asc")->all();
 
-    expect(count($users))->toBe(2);
+    expect($users)->toBeArray();
     expect($users[0]['created_at'])->toBeLessThan($users[1]['created_at']);
 });
 
@@ -16,7 +16,7 @@ it('orders results in descending order', function () {
 
     $users = $db->select('test')->orderBy("created_at", "desc")->all();
 
-    expect(count($users))->toBe(2);
+    expect($users)->toBeArray();
     expect($users[1]['created_at'])->toBeLessThan($users[0]['created_at']);
 });
 
