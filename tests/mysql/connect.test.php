@@ -49,21 +49,31 @@ it('inserts dummy user into `test` table', function () {
                 'password' => 'testing123',
             ])
             ->execute();
+
+        sleep(1);
+
+        $db->insert('test')
+            ->params([
+            'name' => 'Name2',
+            'email' => 'mail2@mail.com',
+            'password' => 'testing123',
+        ])
+            ->execute();
         $success = true;
     } catch (\Throwable $th) {
     }
 
-	expect($success)->toBeTrue();
+    expect($success)->toBeTrue();
 });
 
 it('selects dummy user from `test` table', function () {
-	$db = new \Leaf\Db();
-	$db->connect('sql7.freemysqlhosting.net', 'sql7600346', 'sql7600346', 'l87WSttrMv');
+    $db = new \Leaf\Db();
+    $db->connect('sql7.freemysqlhosting.net', 'sql7600346', 'sql7600346', 'l87WSttrMv');
 
-	$user = $db->select('test')
-		->where('name', 'Name')
-		->first();
+    $user = $db->select('test')
+        ->where('name', 'Name')
+        ->first();
 
-	expect($user['name'])->toBe('Name');
-	expect($user['email'])->toBe('mail@mail.com');
+    expect($user['name'])->toBe('Name');
+    expect($user['email'])->toBe('mail@mail.com');
 });
