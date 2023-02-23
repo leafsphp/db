@@ -15,10 +15,10 @@ class Utils
 {
     /**
      * Flatten multidimensional array into a single array
-     * 
+     *
      * @param array $array The array to flatten
      * @return bool $keys Use array keys or not
-     * 
+     *
      * @return array
      */
     public static function flatten(array $array, bool $keys = false)
@@ -40,9 +40,9 @@ class Utils
 
     /**
      * Construct search that begins with a phrase in db
-     * 
+     *
      * @param string $phrase The phrase to check
-     * 
+     *
      * @return string
      */
     public static function beginsWith(string $phrase)
@@ -52,9 +52,9 @@ class Utils
 
     /**
      * Construct search that ends with a phrase in db
-     * 
+     *
      * @param string $phrase The phrase to check
-     * 
+     *
      * @return string
      */
     public static function endsWith(string $phrase)
@@ -64,9 +64,9 @@ class Utils
 
     /**
      * Construct search that includes a phrase in db
-     * 
+     *
      * @param string $phrase The phrase to check
-     * 
+     *
      * @return string
      */
     public static function includes(string $phrase)
@@ -76,10 +76,10 @@ class Utils
 
     /**
      * Construct search that begins and ends with a phrase in db
-     * 
+     *
      * @param string $beginsWith The beginning of the phrase to search
      * @param string $endsWith The end of the phrase to search
-     * 
+     *
      * @return string
      */
     public static function word(string $beginsWith, string $endsWith): string

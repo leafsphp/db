@@ -97,7 +97,9 @@ class Core
         string $password = '',
         string $dbtype = 'mysql'
     ) {
-        if (class_exists('Leaf\App')) app()->config('db', $this->config);
+        if (class_exists('Leaf\App')) {
+            app()->config('db', $this->config);
+        }
 
         if ($host !== '') {
             $this->connect($host, $dbname, $user, $password, $dbtype);
@@ -192,10 +194,18 @@ class Core
         } else {
             $dsn = "$dbtype:host=$host";
 
-            if ($dbname !== '') $dsn .= ";dbname=$dbname";
-            if ($this->config('port')) $dsn .= ';port=' . $this->config('port');
-            if ($this->config('charset')) $dsn .= ';charset=' . $this->config('charset');
-            if ($this->config('unixSocket')) $dsn .= ';unix_socket=' . $this->config('unixSocket');
+            if ($dbname !== '') {
+                $dsn .= ";dbname=$dbname";
+            }
+            if ($this->config('port')) {
+                $dsn .= ';port=' . $this->config('port');
+            }
+            if ($this->config('charset')) {
+                $dsn .= ';charset=' . $this->config('charset');
+            }
+            if ($this->config('unixSocket')) {
+                $dsn .= ';unix_socket=' . $this->config('unixSocket');
+            }
         }
 
         return $dsn;
@@ -208,7 +218,9 @@ class Core
      */
     public function connection(\PDO $connection = null)
     {
-        if (!$connection) return $this->connection;
+        if (!$connection) {
+            return $this->connection;
+        }
         $this->connection = $connection;
     }
 
@@ -228,6 +240,7 @@ class Core
     public function table(string $table): self
     {
         $this->table = $table;
+
         return $this;
     }
 
@@ -248,7 +261,7 @@ class Core
                 $this->config = array_merge($this->config, $name);
             } else {
                 if (!$value) {
-                    return $this->config[$name];
+                    return $this->config[$name] ?? null;
                 } else {
                     $this->config[$name] = $value;
                 }
@@ -264,6 +277,7 @@ class Core
     public function query(string $sql): self
     {
         $this->query = $sql;
+
         return $this;
     }
 
@@ -275,6 +289,7 @@ class Core
     public function bind(...$bindings): self
     {
         $this->bindings = $bindings;
+
         return $this;
     }
 
@@ -307,6 +322,7 @@ class Core
 
                 if (count($this->errors)) {
                     Builder::$bindings = [];
+
                     return null;
                 }
             }
@@ -334,6 +350,7 @@ class Core
     public function result()
     {
         $this->execute();
+
         return $this->queryResult;
     }
 
@@ -343,6 +360,7 @@ class Core
     public function column()
     {
         $this->execute();
+
         return $this->queryResult->fetch(\PDO::FETCH_COLUMN);
     }
 
@@ -352,6 +370,7 @@ class Core
     public function count(): int
     {
         $this->execute();
+
         return $this->queryResult->rowCount();
     }
 
