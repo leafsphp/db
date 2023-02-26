@@ -240,7 +240,7 @@ class Core
      * 
      * @param string|null $name Name of the sequence object from which the ID should be returned.
      */
-    public function lastId($name = null)
+    public function lastInsertId($name = null)
     {
         return $this->connection->lastInsertId();
     }
