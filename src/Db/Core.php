@@ -236,6 +236,16 @@ class Core
     }
 
     /**
+     * Returns the ID of the last inserted row or sequence value
+     * 
+     * @param string|null $name Name of the sequence object from which the ID should be returned.
+     */
+    public function lastId($name = null)
+    {
+        return $this->connection->lastInsertId();
+    }
+
+    /**
      * Set the current db table for operations
      *
      * @param string $table Table to perform database operations on
