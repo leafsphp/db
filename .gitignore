@@ -1,12 +1,11 @@
 # Global
 .phpunit*
+.php-cs-fixer.cache
 .composer
 composer.lock
 package-lock.json
 vendor/
 test/
-tests/
-*.tests.php
 
 # OS Generated
 .DS_Store*

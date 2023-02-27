@@ -3,7 +3,7 @@
 if (!function_exists('db') && class_exists('Leaf\App')) {
     /**
      * Return the database object
-     * 
+     *
      * @return \Leaf\Db
      */
     function db()

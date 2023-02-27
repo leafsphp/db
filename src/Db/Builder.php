@@ -22,7 +22,7 @@ class Builder
 
     /**
      * Order query results by a colum
-     * 
+     *
      * @param string $query The query to modify (if any)
      * @param string $column The column to order results by
      * @param string $direction The direction to order [DESC, ASC]
@@ -46,8 +46,29 @@ class Builder
     }
 
     /**
+     * Group query results by a column
+     *
+     * @param string $query The query to modify (if any)
+     * @param string $column The column to group results by
+     * @author Milos Lukic <https://github.com/iammiloslukic>
+     */
+    public static function groupBy(
+        string $query,
+        string $column
+    ): string {
+        if (strpos($query, 'GROUP BY') === false) {
+            $query .= " GROUP BY $column";
+        } else {
+            $parts = explode('GROUP BY', $query);
+            $query = implode("GROUP BY $column", $parts);
+        }
+
+        return $query;
+    }
+
+    /**
      * Limit query to specific number of values to return
-     * 
+     *
      * @param string $query The query to modify (if any)
      * @param string|number $number Limit to query
      */
@@ -68,7 +89,7 @@ class Builder
 
     /**
      * Controls inner workings of all where blocks
-     * 
+     *
      * @param string $query The query to modify
      * @param string|array $condition The condition to evaluate
      * @param mixed $value The value if condition is a string
@@ -92,7 +113,7 @@ class Builder
             }
         } else {
             foreach ($condition as $k => $v) {
-                $query .=  "$k$comparator? $operation ";
+                $query .= "$k$comparator? $operation ";
             }
 
             $values = array_values($condition);
@@ -106,7 +127,7 @@ class Builder
 
     /**
      * Builder for params block
-     * 
+     *
      * @param string $query The query to modify
      * @param array|string $params Key or params to pass into query
      */
