@@ -140,7 +140,7 @@ class Core
             $dbtype = $this->config('dbtype');
 
             $connection = new \PDO(
-                $this->dsn(),
+                $this->config('dbUrl') ?? $this->dsn(),
                 $dbtype === 'sqlite' ? null : $this->config('username'),
                 $dbtype === 'sqlite' ? null : $this->config('password'),
                 array_merge(
