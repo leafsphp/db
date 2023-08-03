@@ -8,7 +8,7 @@
     "php",
     "framework"
   ],
-  "homepage": "https://leafphp.netlify.app/#/",
+  "homepage": "https://leafphp.dev/modules/db/",
   "type": "library",
   "license": "MIT",
   "authors": [

@@ -1,7 +1,7 @@
 <?php
 
 beforeAll(function () {
-    $pdo = new \PDO('mysql:host=sql7.freemysqlhosting.net;dbname=sql7600346', 'sql7600346', 'l87WSttrMv');
+    $pdo = new \PDO('mysql:host=eu-cdbr-west-03.cleardb.net;dbname=heroku_fb1311a639bb407', 'b9607a8a6d5ebb', 'cc589b17');
 
     $query = '
 		DROP TABLE IF EXISTS `test`;
@@ -24,7 +24,7 @@ it('connects to database', function () {
 
     try {
         $db = new \Leaf\Db();
-        expect($db->connect('sql7.freemysqlhosting.net', 'sql7600346', 'sql7600346', 'l87WSttrMv'))
+        expect($db->connect('eu-cdbr-west-03.cleardb.net', 'heroku_fb1311a639bb407', 'b9607a8a6d5ebb', 'cc589b17'))
             ->toBeInstanceOf(\PDO::class);
         $db->close();
 
@@ -38,7 +38,7 @@ it('connects to database', function () {
 it('inserts dummy user into `test` table', function () {
     $success = false;
     $db = new \Leaf\Db();
-    $db->connect('sql7.freemysqlhosting.net', 'sql7600346', 'sql7600346', 'l87WSttrMv');
+    $db->connect('eu-cdbr-west-03.cleardb.net', 'heroku_fb1311a639bb407', 'b9607a8a6d5ebb', 'cc589b17');
 
     try {
         $db->insert('test')
@@ -67,7 +67,7 @@ it('inserts dummy user into `test` table', function () {
 
 it('selects dummy user from `test` table', function () {
     $db = new \Leaf\Db();
-    $db->connect('sql7.freemysqlhosting.net', 'sql7600346', 'sql7600346', 'l87WSttrMv');
+    $db->connect('eu-cdbr-west-03.cleardb.net', 'heroku_fb1311a639bb407', 'b9607a8a6d5ebb', 'cc589b17');
 
     $user = $db->select('test')
         ->where('name', 'Name')
