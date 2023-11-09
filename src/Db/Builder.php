@@ -35,11 +35,8 @@ class Builder
         if (strpos($query, 'ORDER BY') === false) {
             $query .= " ORDER BY $column " . strtoupper($direction);
         } else {
-            $parts = explode('ORDER BY', $query);
-            $col = explode(' ', trim($parts[1]));
-            $parts[1] = str_replace($col[0], '', $parts[1]);
-
-            $query = implode("ORDER BY $column " . strtoupper($direction), $parts);
+            $parts = explode('ORDER BY ', $query);
+            $query = implode("ORDER BY $column " . strtoupper($direction) . ", ", $parts);
         }
 
         return $query;
