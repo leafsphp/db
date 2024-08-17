@@ -8,10 +8,12 @@ if (!function_exists('db') && class_exists('Leaf\App')) {
      */
     function db()
     {
-        if (!(\Leaf\Config::get("db.instance"))) {
-            \Leaf\Config::set("db.instance", new \Leaf\Db());
+        if (!(\Leaf\Config::getStatic('db'))) {
+            \Leaf\Config::singleton('db', function () {
+                return new \Leaf\Db();
+            });
         }
 
-        return \Leaf\Config::get("db.instance");
+        return \Leaf\Config::get('db');
     }
 }
