@@ -98,7 +98,7 @@ class Core
         string $dbtype = 'mysql'
     ) {
         if (class_exists('Leaf\App')) {
-            app()->config('db', $this->config);
+            app()->config('db.config', $this->config);
         }
 
         if ($host !== '') {
@@ -263,12 +263,13 @@ class Core
     public function config($name, $value = null)
     {
         if (class_exists('Leaf\App') && function_exists('app')) {
-            if (is_array($name)) {
-                $this->config = array_merge($this->config, $name);
-                app()->config('db', array_merge(app()->config('db'), $this->config));
-            } else {
-                return app()->config("db.$name", $value);
+            $this->config = array_merge($this->config, $name);
+
+            if (!is_array($name)) {
+                $this->config[$name] = $value;
             }
+
+            app()->config('db.config', array_merge(app()->config('db.config'), $this->config));
         } else {
             if (is_array($name)) {
                 $this->config = array_merge($this->config, $name);
