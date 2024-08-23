@@ -85,6 +85,20 @@ class Builder
     }
 
     /**
+     * Add an OFFSET clause to the query
+     *
+     * @param string $query The current query string
+     * @param int $offset The offset value
+     * @return string The modified query with OFFSET
+     */
+    public static function offset(string $query, int $offset): string
+    {
+        return $query . " OFFSET $offset";
+    }
+
+
+    
+    /**
      * Controls inner workings of all where blocks
      *
      * @param string $query The query to modify
