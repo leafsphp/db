@@ -204,7 +204,11 @@ class Core
                 $dsn .= ';port=' . $this->config('port');
             }
             if ($this->config('charset')) {
-                $dsn .= ';charset=' . $this->config('charset');
+                if($dbtype === 'pgsql') {
+                    $dsn .= ';options=\'--client_encoding='.$this->config('charset').'\'';
+                } else {
+                    $dsn .= ';charset=' . $this->config('charset');
+                }
             }
             if ($this->config('unixSocket')) {
                 $dsn .= ';unix_socket=' . $this->config('unixSocket');
