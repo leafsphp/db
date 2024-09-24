@@ -196,7 +196,7 @@ class Core
             if ($this->config('port')) {
                 $dsn .= "," . $this->config('port');
             }
-            $dsn .= ";Database=" . $this->config('database');
+            $dsn .= ";Database=" . $this->config('dbname');
         } else {
             $dsn = "$dbtype:host=$host";
 
