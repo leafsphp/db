@@ -84,6 +84,24 @@ class Builder
         return $query;
     }
 
+
+    /**
+     * Offset query items by a specific number
+     *
+     * @param string $query The query to modify (if any)
+     * @param string|number $number Offset to query
+     */
+    public static function offset(string $query, $number): string
+    {
+        if (strpos($query, ' OFFSET ') === false) {
+            $query .= " OFFSET $number";
+        } else {
+            $parts = explode(' OFFSET ', $query);
+            $query = implode(" OFFSET $number ", $parts);
+        }
+        
+    }
+
     /**
      * Controls inner workings of all where blocks
      *
