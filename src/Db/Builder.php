@@ -99,7 +99,7 @@ class Builder
             $parts = explode(' OFFSET ', $query);
             $query = implode(" OFFSET $number ", $parts);
         }
-        
+
     }
 
     /**

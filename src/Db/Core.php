@@ -204,7 +204,7 @@ class Core
                 $dsn .= ';port=' . $this->config('port');
             }
             if ($this->config('charset')) {
-                if($dbtype === 'pgsql') {
+                if ($dbtype === 'pgsql') {
                     $dsn .= ';options=\'--client_encoding='.$this->config('charset').'\'';
                 } else {
                     $dsn .= ';charset=' . $this->config('charset');
