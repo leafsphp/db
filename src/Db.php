@@ -184,6 +184,18 @@ class Db extends Db\Core
     }
 
     /**
+     * Offset query items by a specific number
+     *
+     * @param string|number $offset The number to offset by
+     */
+    public function offset($offset)
+    {
+        $this->query = Builder::offset($this->query, $offset);
+
+        return $this;
+    }
+
+    /**
      * Retrieve a row from table
      *
      * @param string $table Db Table

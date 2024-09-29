@@ -28,3 +28,12 @@ it('orders by dummy name and count', function () {
 
     expect(count($data))->toBe(2);
 });
+
+it('orders by dummy name and count with limit and offset', function () {
+    $db = new \Leaf\Db();
+    $db->connect('eu-cdbr-west-03.cleardb.net', 'heroku_fb1311a639bb407', 'b9607a8a6d5ebb', 'cc589b17');
+
+    $data = $db->select('test', 'name, COUNT(*)')->groupBy("created_at")->limit(1)->offset(1)->all();
+
+    expect(count($data))->toBe(1);
+});
