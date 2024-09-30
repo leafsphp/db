@@ -356,4 +356,63 @@ class Db extends Db\Core
     {
         return $this->select($this->table)->where($row, 'LIKE', Utils::includes($value))->hidden($hidden)->all();
     }
+
+    /**
+     * Begin a database transaction
+     * 
+     * @return self
+     */
+    public function beginTransaction(): self
+    {
+        $this->query("START TRANSACTION");
+        $this->execute();
+
+        return $this;
+    }
+
+    /**
+     * Commit the current transaction
+     * 
+     * @return self
+     */
+    public function commit(): self
+    {
+        $this->query("COMMIT");
+        $this->execute();
+
+        return $this;
+    }
+
+    /**
+     * Rollback the current transaction
+     * 
+     * @return self
+     */
+    public function rollback(): self
+    {
+        $this->query("ROLLBACK");
+        $this->execute();
+
+        return $this;
+    }
+
+    /**
+     * Transaction shorthand
+     * 
+     * @param callable $callback The callback to run
+     * @return self
+     */
+    public function transaction($callback): self
+    {
+        try {
+            $this->beginTransaction();
+            $callback($this);
+            $this->commit();
+        } catch (\Exception $e) {
+            $this->rollback();
+            throw $e;
+        }
+
+        return $this;
+    }
 }
