@@ -359,7 +359,7 @@ class Db extends Db\Core
 
     /**
      * Begin a database transaction
-     * 
+     *
      * @return self
      */
     public function beginTransaction(): self
@@ -372,7 +372,7 @@ class Db extends Db\Core
 
     /**
      * Commit the current transaction
-     * 
+     *
      * @return self
      */
     public function commit(): self
@@ -385,7 +385,7 @@ class Db extends Db\Core
 
     /**
      * Rollback the current transaction
-     * 
+     *
      * @return self
      */
     public function rollback(): self
@@ -398,7 +398,7 @@ class Db extends Db\Core
 
     /**
      * Transaction shorthand
-     * 
+     *
      * @param callable $callback The callback to run
      * @return self
      */
@@ -410,6 +410,7 @@ class Db extends Db\Core
             $this->commit();
         } catch (\Exception $e) {
             $this->rollback();
+
             throw $e;
         }
 
