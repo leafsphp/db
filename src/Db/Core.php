@@ -193,7 +193,10 @@ class Core
             $dsn = "sqlite:$dbname";
         } elseif ($dbtype === 'sqlsrv') {
             $dsn = $dbtype . ":Server=" . $this->config('host');
-            $dsn .= ";Database=" . $this->config('database');
+            if ($this->config('port')) {
+                $dsn .= "," . $this->config('port');
+            }
+            $dsn .= ";Database=" . $this->config('dbname');
         } else {
             $dsn = "$dbtype:host=$host";
 
