@@ -167,13 +167,13 @@ class Core
     {
         return $this->connect(
             [
-                'dbtype' => getenv('DB_CONNECTION') ? getenv('DB_CONNECTION') : 'mysql',
-                'charset' => getenv('DB_CHARSET'),
-                'port' => getenv('DB_PORT') ? getenv('DB_PORT') : '3306',
-                'host' => getenv('DB_HOST') ? getenv('DB_HOST') : '127.0.0.1',
-                'username' => getenv('DB_USERNAME') ? getenv('DB_USERNAME') : 'root',
-                'password' => getenv('DB_PASSWORD') ? getenv('DB_PASSWORD') : '',
-                'dbname' => getenv('DB_DATABASE'),
+                'dbtype' => $this->env('DB_CONNECTION') ? $this->env('DB_CONNECTION') : 'mysql',
+                'charset' => $this->env('DB_CHARSET'),
+                'port' => $this->env('DB_PORT') ? $this->env('DB_PORT') : '3306',
+                'host' => $this->env('DB_HOST') ? $this->env('DB_HOST') : '127.0.0.1',
+                'username' => $this->env('DB_USERNAME') ? $this->env('DB_USERNAME') : 'root',
+                'password' => $this->env('DB_PASSWORD') ? $this->env('DB_PASSWORD') : '',
+                'dbname' => $this->env('DB_DATABASE'),
             ],
             '',
             '',
@@ -181,6 +181,21 @@ class Core
             '',
             $pdoOptions
         );
+    }
+
+    /**
+     * Returns the value of the environment variable by using Leaf's `_env` primarily.
+     * @param string $name
+     * @return string|bool
+     */
+    private function env(string $name): string|bool{
+        // If `_env` function of Leaf is defined, use it.
+        if(function_exists('_env')){
+            return _env($name);
+        }
+
+        // Return the value if found, otherwise false like getenv().
+        return $_ENV[$name] ?? false;
     }
 
     protected function dsn(): string
