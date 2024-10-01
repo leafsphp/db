@@ -192,7 +192,7 @@ class Core
     {
         // If `_env` function of Leaf is defined, use it.
         if (function_exists('_env')) {
-            return _env($name);
+            return _env($name, false);
         }
 
         // Return the value if found, otherwise false like getenv().
