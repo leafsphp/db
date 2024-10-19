@@ -401,8 +401,8 @@ class Db extends Db\Core
      * Run a database transaction
      *
      * @param callable $callback The callback to run
-     * 
-     * @return boolean Whether the transaction completed successfully
+     *
+     * @return bool Whether the transaction completed successfully
      */
     public function transaction($callback): bool
     {
