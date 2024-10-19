@@ -278,6 +278,7 @@ class Db extends Db\Core
             $value === null ? $comparator : $value,
             $value === null ? "=" : $comparator
         );
+
         $this->bind(...(Builder::$bindings));
 
         return $this;
@@ -397,23 +398,25 @@ class Db extends Db\Core
     }
 
     /**
-     * Transaction shorthand
+     * Run a database transaction
      *
      * @param callable $callback The callback to run
-     * @return self
+     * 
+     * @return boolean Whether the transaction completed successfully
      */
-    public function transaction($callback): self
+    public function transaction($callback): bool
     {
         try {
             $this->beginTransaction();
             $callback($this);
             $this->commit();
+
+            return true;
         } catch (\Exception $e) {
             $this->rollback();
+            $this->errorsArray = $e;
 
-            throw $e;
+            return false;
         }
-
-        return $this;
     }
 }
