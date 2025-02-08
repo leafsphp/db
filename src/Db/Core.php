@@ -114,7 +114,7 @@ class Core
     }
 
     /**
-     * Load db credentials, but defer connection until needed
+     * Connect to database immediately
      *
      * @param string|array $host Host Name or full config
      * @param string $dbname Database name
@@ -196,6 +196,27 @@ class Core
         ]);
 
         return $this;
+    }
+
+    /**
+     * Alias for connect
+     *
+     * @param string|array $host Host Name or full config
+     * @param string $dbname Database name
+     * @param string $user Database username
+     * @param string $password Database password
+     * @param string $dbtype Type of database: mysql, postgres, sqlite, ...
+     * @param array $pdoOptions Options for PDO connection
+     */
+    public function load(
+        $host = '127.0.0.1',
+        string $dbname = '',
+        string $user = 'root',
+        string $password = '',
+        string $dbtype = 'mysql',
+        array $pdoOptions = []
+    ): Core {
+        return $this->connect($host, $dbname, $user, $password, $dbtype, $pdoOptions);
     }
 
     /**
