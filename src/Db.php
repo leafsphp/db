@@ -306,6 +306,21 @@ class Db extends Db\Core
     }
 
     /**
+     * Fetch records "with" another table
+     */
+    public function with(string $table, string $foreignKey = null)
+    {
+        $foreignKey ??= Utils::basicSingularize($table) . '_id';
+
+        $this->eager[] = [
+            'table' => $table,
+            'foreignKey' => $foreignKey
+        ];
+
+        return $this;
+    }
+
+    /**
      * Hide particular fields from the final value returned
      *
      * @param mixed $values The value(s) to hide

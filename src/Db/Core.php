@@ -478,6 +478,7 @@ class Core
         $hiddenEagerFields = [];
 
         $this->execute();
+
         $result = $this->queryResult->fetch(\PDO::FETCH_ASSOC);
 
         if (count($added)) {
@@ -501,7 +502,7 @@ class Core
                 $keyName = Utils::basicSingularize($item['table']);
 
                 if (class_exists('Leaf\Auth\Config') && \Leaf\Auth\Config::get('db.table') === $item['table']) {
-                    $hiddenEagerFields = \Leaf\Auth\Config::get('hidden');
+                    $hiddenEagerFields = array_merge($hiddenEagerFields, \Leaf\Auth\Config::get('hidden'));
                 }
 
                 $result[$keyName] = $this
@@ -558,12 +559,27 @@ class Core
         $added = $this->added;
         $hidden = $this->hidden;
 
+        $eagerForeignKeys = [];
+        $hiddenEagerFields = [];
+
         $this->execute();
 
-        $results = array_map(function ($result) use ($hidden, $added) {
+        $results = array_map(function ($result) use ($hidden, $added, &$eagerForeignKeys, &$hiddenEagerFields) {
+            if (count($this->eager)) {
+                foreach ($this->eager as $item) {
+                    if (!in_array($result[$item['foreignKey']], $eagerForeignKeys)) {
+                        $eagerForeignKeys[] = $result[$item['foreignKey']];
+                    }
+                }
+            }
+
             if (count($hidden)) {
                 foreach ($hidden as $item) {
-                    unset($result[$item]);
+                    if (isset($result[$item])) {
+                        unset($result[$item]);
+                    } else if (strpos($item, '.') !== false) {
+                        $hiddenEagerFields[] = explode('.', $item);
+                    }
                 }
             }
 
@@ -573,6 +589,43 @@ class Core
 
             return $result;
         }, $this->queryResult->fetchAll(\PDO::FETCH_ASSOC));
+
+        if (count($eagerForeignKeys)) {
+            foreach ($this->eager as $item) {
+                $keyName = Utils::basicSingularize($item['table']);
+
+                if (class_exists('Leaf\Auth\Config') && \Leaf\Auth\Config::get('db.table') === $item['table']) {
+                    $hiddenEagerFields = array_merge($hiddenEagerFields, \Leaf\Auth\Config::get('hidden'));
+                }
+
+                $eagerResults = $this
+                    ->connection()
+                    ->query("SELECT * FROM {$item['table']} WHERE id IN (" . implode(',', $eagerForeignKeys) . ")")
+                    ->fetchAll(\PDO::FETCH_ASSOC);
+
+                foreach ($results as $key => $result) {
+                    $results[$key][$keyName] = $eagerResults[array_search($result[$item['foreignKey']], array_column($eagerResults, 'id'))];
+
+                    if (count($hiddenEagerFields)) {
+                        foreach ($hiddenEagerFields as $field) {
+                            if (is_array($field) && $field[0] === $keyName) {
+                                $field = $field[1];
+                            }
+
+                            if ($field === 'field.id' && class_exists('Leaf\Auth\Config')) {
+                                $field = \Leaf\Auth\Config::get('id.key');
+                            }
+
+                            if ($field === 'field.password' && class_exists('Leaf\Auth\Config')) {
+                                $field = \Leaf\Auth\Config::get('password.key');
+                            }
+
+                            unset($results[$key][$keyName][$field]);
+                        }
+                    }
+                }
+            }
+        }
 
         if ($type == 'obj' || $type == 'object') {
             $results = (object) $results;
