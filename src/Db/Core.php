@@ -123,7 +123,7 @@ class Core
      * @param string $dbtype Type of database: mysql, postgres, sqlite, ...
      * @param array $pdoOptions Options for PDO connection
      */
-    public function load(
+    public function connectSync(
         $host = '127.0.0.1',
         string $dbname = '',
         string $user = 'root',
@@ -131,38 +131,7 @@ class Core
         string $dbtype = 'mysql',
         array $pdoOptions = []
     ): Core {
-        $this->config([
-            'deferred' => [
-                $host,
-                $dbname,
-                $user,
-                $password,
-                $dbtype,
-                $pdoOptions,
-            ],
-        ]);
 
-        return $this;
-    }
-
-    /**
-     * Connect to database
-     *
-     * @param string|array $host Host Name or full config
-     * @param string $dbname Database name
-     * @param string $user Database username
-     * @param string $password Database password
-     * @param string $dbtype Type of database: mysql, postgres, sqlite, ...
-     * @param array $pdoOptions Options for PDO connection
-     */
-    public function connect(
-        $host = '127.0.0.1',
-        string $dbname = '',
-        string $user = 'root',
-        string $password = '',
-        string $dbtype = 'mysql',
-        array $pdoOptions = []
-    ): \PDO {
         if (is_array($host)) {
             $this->config($host);
         } else {
@@ -190,11 +159,43 @@ class Core
 
             $connection->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
             $this->connection = $connection;
-
-            return $connection;
         } catch (\Throwable $th) {
             throw $th;
         }
+
+        return $this;
+    }
+
+    /**
+     * Connect to database
+     *
+     * @param string|array $host Host Name or full config
+     * @param string $dbname Database name
+     * @param string $user Database username
+     * @param string $password Database password
+     * @param string $dbtype Type of database: mysql, postgres, sqlite, ...
+     * @param array $pdoOptions Options for PDO connection
+     */
+    public function connect(
+        $host = '127.0.0.1',
+        string $dbname = '',
+        string $user = 'root',
+        string $password = '',
+        string $dbtype = 'mysql',
+        array $pdoOptions = []
+    ): Core {
+        $this->config([
+            'deferred' => [
+                $host,
+                $dbname,
+                $user,
+                $password,
+                $dbtype,
+                $pdoOptions,
+            ],
+        ]);
+
+        return $this;
     }
 
     /**
@@ -202,7 +203,7 @@ class Core
      *
      * @param array $pdoOptions Options for PDO connection
      */
-    public function autoConnect(array $pdoOptions = []): \PDO
+    public function autoConnect(array $pdoOptions = []): Core
     {
         return $this->connect(
             [
@@ -285,7 +286,7 @@ class Core
     {
         if (!$connection) {
             if (!$this->connection && $this->config('deferred')) {
-                $this->connect(...((array) $this->config('deferred')));
+                $this->connectSync(...((array) $this->config('deferred')));
             }
 
             return $this->connection;
