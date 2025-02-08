@@ -678,6 +678,8 @@ class Core
                     }
                 }
             }
+
+            $this->eager = [];
         }
 
         $currentTable = null;
