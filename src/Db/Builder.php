@@ -21,7 +21,7 @@ class Builder
     public static $bindings = [];
 
     /**
-     * Order query results by a colum
+     * Order query results by a column
      *
      * @param string $query The query to modify (if any)
      * @param string $column The column to order results by

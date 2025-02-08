@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Leaf\Db;
 
+use Illuminate\Container\Util;
+
 /**
  * Leaf Db [Core]
  * -------------------------
@@ -73,6 +75,11 @@ class Core
      * Items which should be unique in db
      */
     protected $uniques = [];
+
+    /**
+     * Items to eager load
+     */
+    protected $eager = [];
 
     /**
      * Query result
@@ -468,6 +475,7 @@ class Core
     {
         $added = $this->added;
         $hidden = $this->hidden;
+        $hiddenEagerFields = [];
 
         $this->execute();
         $result = $this->queryResult->fetch(\PDO::FETCH_ASSOC);
@@ -478,8 +486,49 @@ class Core
 
         if (count($hidden)) {
             foreach ($hidden as $item) {
-                unset($result[$item]);
+                if (isset($result[$item])) {
+                    unset($result[$item]);
+                } else if (strpos($item, '.') !== false) {
+                    $hiddenEagerFields[] = explode('.', $item);
+                }
             }
+
+            $this->hidden = [];
+        }
+
+        if (count($this->eager)) {
+            foreach ($this->eager as $item) {
+                $keyName = Utils::basicSingularize($item['table']);
+
+                if (class_exists('Leaf\Auth\Config') && \Leaf\Auth\Config::get('db.table') === $item['table']) {
+                    $hiddenEagerFields = \Leaf\Auth\Config::get('hidden');
+                }
+
+                $result[$keyName] = $this
+                    ->connection()
+                    ->query("SELECT * FROM {$item['table']} WHERE id = {$result[$item['foreignKey']]}")
+                    ->fetch(\PDO::FETCH_ASSOC);
+
+                if (count($hiddenEagerFields)) {
+                    foreach ($hiddenEagerFields as $field) {
+                        if (is_array($field) && $field[0] === $keyName) {
+                            $field = $field[1];
+                        }
+
+                        if ($field === 'field.id' && class_exists('Leaf\Auth\Config')) {
+                            $field = \Leaf\Auth\Config::get('id.key');
+                        }
+
+                        if ($field === 'field.password' && class_exists('Leaf\Auth\Config')) {
+                            $field = \Leaf\Auth\Config::get('password.key');
+                        }
+
+                        unset($result[$keyName][$field]);
+                    }
+                }
+            }
+
+            $this->eager = [];
         }
 
         return $result;
@@ -498,23 +547,7 @@ class Core
      */
     public function fetchObj()
     {
-        $add = $this->added;
-        $hidden = $this->hidden;
-
-        $this->execute();
-        $result = $this->queryResult->fetch(\PDO::FETCH_ASSOC);
-
-        if (count($add)) {
-            $result = array_merge($result, $add);
-        }
-
-        if (count($hidden)) {
-            foreach ($hidden as $item) {
-                unset($result[$item]);
-            }
-        }
-
-        return (object) $result;
+        return (object) $this->fetchAssoc();
     }
 
     /**
