@@ -306,7 +306,12 @@ class Db extends Db\Core
     }
 
     /**
-     * Fetch records "with" another table
+     * Fetch current query with all related data
+     * 
+     * @param string $table The table to join
+     * @param string $foreignKey The foreign key to use
+     * 
+     * @return self
      */
     public function with(string $table, string $foreignKey = null)
     {

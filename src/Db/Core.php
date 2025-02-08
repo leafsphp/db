@@ -475,6 +475,8 @@ class Core
     {
         $added = $this->added;
         $hidden = $this->hidden;
+        $currentTable = $this->table;
+
         $hiddenEagerFields = [];
 
         $this->execute();
@@ -505,10 +507,20 @@ class Core
                     $hiddenEagerFields = array_merge($hiddenEagerFields, \Leaf\Auth\Config::get('hidden'));
                 }
 
-                $result[$keyName] = $this
-                    ->connection()
-                    ->query("SELECT * FROM {$item['table']} WHERE id = {$result[$item['foreignKey']]}")
-                    ->fetch(\PDO::FETCH_ASSOC);
+                if ($result[$item['foreignKey']] ?? false) {
+                    $result[$keyName] = $this
+                        ->connection()
+                        ->query("SELECT * FROM {$item['table']} WHERE id = {$result[$item['foreignKey']]}")
+                        ->fetch(\PDO::FETCH_ASSOC);
+                } else {
+                    $keyName = $item['table'];
+                    $item['foreignKey'] = Utils::basicSingularize($currentTable) . '_id';
+
+                    $result[$keyName] = $this
+                        ->connection()
+                        ->query("SELECT * FROM {$item['table']} WHERE {$item['foreignKey']} = {$result['id']}")
+                        ->fetchAll(\PDO::FETCH_ASSOC);
+                }
 
                 if (count($hiddenEagerFields)) {
                     foreach ($hiddenEagerFields as $field) {
@@ -531,6 +543,8 @@ class Core
 
             $this->eager = [];
         }
+
+        $currentTable = null;
 
         return $result;
     }
@@ -558,18 +572,21 @@ class Core
     {
         $added = $this->added;
         $hidden = $this->hidden;
+        $currentTable = $this->table;
 
         $eagerForeignKeys = [];
         $hiddenEagerFields = [];
 
         $this->execute();
 
-        $results = array_map(function ($result) use ($hidden, $added, &$eagerForeignKeys, &$hiddenEagerFields) {
+        $results = array_map(function ($result) use ($hidden, $added, $currentTable, &$eagerForeignKeys, &$hiddenEagerFields) {
             if (count($this->eager)) {
                 foreach ($this->eager as $item) {
-                    if (!in_array($result[$item['foreignKey']], $eagerForeignKeys)) {
-                        $eagerForeignKeys[] = $result[$item['foreignKey']];
+                    if (!in_array($result[$item['foreignKey']] ?? $result['id'], $eagerForeignKeys)) {
+                        $eagerForeignKeys[] = $result[$item['foreignKey']] ?? $result['id'];
                     }
+
+                    $item['foreignKey'] ??= Utils::basicSingularize($currentTable) . '_id';
                 }
             }
 
@@ -598,13 +615,27 @@ class Core
                     $hiddenEagerFields = array_merge($hiddenEagerFields, \Leaf\Auth\Config::get('hidden'));
                 }
 
-                $eagerResults = $this
-                    ->connection()
-                    ->query("SELECT * FROM {$item['table']} WHERE id IN (" . implode(',', $eagerForeignKeys) . ")")
-                    ->fetchAll(\PDO::FETCH_ASSOC);
+                if ($results[0][$item['foreignKey']] ?? false) {
+                    $eagerResults = $this
+                        ->connection()
+                        ->query("SELECT * FROM {$item['table']} WHERE id IN (" . implode(',', $eagerForeignKeys) . ")")
+                        ->fetchAll(\PDO::FETCH_ASSOC);
+                } else {
+                    $keyName = $item['table'];
+                    $item['foreignKey'] = Utils::basicSingularize($currentTable) . '_id';
+
+                    $eagerResults = $this
+                        ->connection()
+                        ->query("SELECT * FROM {$item['table']} WHERE {$item['foreignKey']} IN (" . implode(',', $eagerForeignKeys) . ")")
+                        ->fetchAll(\PDO::FETCH_ASSOC);
+                }
 
                 foreach ($results as $key => $result) {
-                    $results[$key][$keyName] = $eagerResults[array_search($result[$item['foreignKey']], array_column($eagerResults, 'id'))];
+                    $results[$key][$keyName] = isset($result[$item['foreignKey']])
+                        ? $eagerResults[array_search($result[$item['foreignKey']], array_column($eagerResults, 'id'))]
+                        : array_values(array_filter($eagerResults, function ($eagerResult) use ($item, $result) {
+                            return $eagerResult[$item['foreignKey']] === $result['id'];
+                        }) ?? []);
 
                     if (count($hiddenEagerFields)) {
                         foreach ($hiddenEagerFields as $field) {
@@ -626,6 +657,8 @@ class Core
                 }
             }
         }
+
+        $currentTable = null;
 
         if ($type == 'obj' || $type == 'object') {
             $results = (object) $results;
