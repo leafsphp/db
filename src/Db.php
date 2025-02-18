@@ -48,7 +48,29 @@ class Db extends Db\Core
      */
     public function tableExists(string $table)
     {
-        $schema = $this->select('INFORMATION_SCHEMA.SCHEMATA')->where('SCHEMA_NAME', $table)->all();
+        $this->connection();
+
+        switch ($this->config['dbtype']) {
+            case 'sqlite':
+                $schema = $this->select('sqlite_master')->where(['type' => 'table', 'name' => $table])->all();
+                break;
+
+            case 'mysql':
+                $schema = $this->select('INFORMATION_SCHEMA.TABLES')->where(['TABLE_SCHEMA' => $this->config['dbname'], 'TABLE_NAME' => $table])->all();
+                break;
+
+            case 'pgsql':
+                $schema = $this->select('pg_catalog.pg_tables')->where(['schemaname' => 'public', 'tablename' => $table])->all();
+                break;
+
+            case 'sqlsrv':
+                $schema = $this->select('information_schema.tables')->where(['table_schema' => 'dbo', 'table_name' => $table])->all();
+                break;
+
+            default:
+                $schema = $this->select('INFORMATION_SCHEMA.SCHEMATA')->where('SCHEMA_NAME', $table)->all();
+                break;
+        }
 
         return count($schema) > 0;
     }
@@ -307,10 +329,10 @@ class Db extends Db\Core
 
     /**
      * Fetch current query with all related data
-     * 
+     *
      * @param string $table The table to join
      * @param string $foreignKey The foreign key to use
-     * 
+     *
      * @return self
      */
     public function with(string $table, string $foreignKey = null)
