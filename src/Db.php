@@ -48,7 +48,7 @@ class Db extends Db\Core
      */
     public function tableExists(string $table)
     {
-        $this->connection();
+        $this->connection($this->currentConnection);
 
         switch ($this->config['dbtype']) {
             case 'sqlite':
