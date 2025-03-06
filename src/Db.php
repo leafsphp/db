@@ -422,7 +422,7 @@ class Db extends Db\Core
      *
      * @return self
      */
-    public function with(string $table, string $foreignKey = null)
+    public function with(string $table, ?string $foreignKey = null)
     {
         $foreignKey ??= Utils::basicSingularize($table) . '_id';
 
