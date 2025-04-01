@@ -735,6 +735,7 @@ class Core
         $this->hidden = [];
         $this->added = [];
         $this->params = [];
+        $this->errors = [];
     }
 
     /**
