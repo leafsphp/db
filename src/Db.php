@@ -48,7 +48,29 @@ class Db extends Db\Core
      */
     public function tableExists(string $table)
     {
-        $schema = $this->select('INFORMATION_SCHEMA.SCHEMATA')->where('SCHEMA_NAME', $table)->all();
+        $this->connection($this->currentConnection);
+
+        switch ($this->config['dbtype']) {
+            case 'sqlite':
+                $schema = $this->select('sqlite_master')->where(['type' => 'table', 'name' => $table])->all();
+                break;
+
+            case 'mysql':
+                $schema = $this->select('INFORMATION_SCHEMA.TABLES')->where(['TABLE_SCHEMA' => $this->config['dbname'], 'TABLE_NAME' => $table])->all();
+                break;
+
+            case 'pgsql':
+                $schema = $this->select('pg_catalog.pg_tables')->where(['schemaname' => 'public', 'tablename' => $table])->all();
+                break;
+
+            case 'sqlsrv':
+                $schema = $this->select('information_schema.tables')->where(['table_schema' => 'dbo', 'table_name' => $table])->all();
+                break;
+
+            default:
+                $schema = $this->select('INFORMATION_SCHEMA.SCHEMATA')->where('SCHEMA_NAME', $table)->all();
+                break;
+        }
 
         return count($schema) > 0;
     }
@@ -305,8 +327,93 @@ class Db extends Db\Core
         return $this;
     }
 
+     *
+     * @param string $column The JSON column
+     * @param string $jsonKey The key within the JSON structure
+     * @param mixed $value The value to compare against
+     * @param string $comparator The comparison operator (default '=')
+     */
+    public function whereJson(string $column, string $jsonKey, $value, string $comparator = '='): self
+    {
+        // Check if the value is an integer, and cast the JSON value to an integer
+        $jsonExpression = is_int($value)
+            # just incase: ? "CAST(JSON_EXTRACT($column, '$.$jsonKey') AS UNSIGNED)";
+            ? "JSON_EXTRACT($column, '$.$jsonKey') + 0"
+            : "JSON_EXTRACT($column, '$.$jsonKey')";
+
+        $this->query = Builder::where($this->query, $jsonExpression, $value, $comparator);
+        $this->bind(...(Builder::$bindings));
+
+        return $this;
+    }
+
     /**
-     * Add a JSON where clause to the query
+     * Add a JSON where clause with OR comparator to the query
+     *
+     * @param string $column The JSON column
+     * @param string $jsonKey The key within the JSON structure
+     * @param mixed $value The value to compare against
+     * @param string $comparator The comparison operator (default '=')
+     */
+    public function orWhereJson(string $column, string $jsonKey, $value, string $comparator = '='): self
+    {
+        $jsonExpression = is_int($value)
+            ? "JSON_EXTRACT($column, '$.$jsonKey') + 0"
+            : "JSON_EXTRACT($column, '$.$jsonKey')";
+
+        $this->query = Builder::where($this->query, $jsonExpression, $value, $comparator, 'OR');
+        $this->bind(...(Builder::$bindings));
+
+        return $this;
+    }
+
+    /**
+     * Add a JSON contains clause to the query
+     *
+     * @param string $column The JSON column
+     * @param mixed $value The value to check for
+     * @param string|null $jsonKey The key within the JSON structure (optional)
+     */
+    public function whereJsonContains(string $column, $value, ?string $jsonKey = null): self
+    {
+        $jsonValue = json_encode($value, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+
+        $jsonExpression = $jsonKey
+            ? "JSON_CONTAINS($column, ?, '$.$jsonKey')"
+            : "JSON_CONTAINS($column, ?)";
+
+        
+        Builder::$bindings[] = $jsonValue;
+        $this->query = Builder::where($this->query, $jsonExpression, 1, '=');
+        $this->bind(...(Builder::$bindings));
+
+        return $this;
+    }
+    
+    /**
+     * Add a JSON contains clause with OR comparator to the query
+     *
+     * @param string $column The JSON column
+     * @param mixed $value The value to check for
+     * @param string|null $jsonKey The key within the JSON structure (optional)
+     */
+    public function orWhereJsonContains(string $column, $value, ?string $jsonKey = null): self
+    {
+        $jsonValue = json_encode($value, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+
+        $jsonExpression = $jsonKey
+            ? "JSON_CONTAINS($column, ?, '$.$jsonKey')"
+            : "JSON_CONTAINS($column, ?)";
+
+        Builder::$bindings[] = $jsonValue;
+        $this->query = Builder::where($this->query, $jsonExpression, 1, '=', 'OR');
+        $this->bind(...(Builder::$bindings));
+
+        return $this;
+    }
+
+    /**
+     * Fetch current query with all related data
      *
      * @param string $column The JSON column
      * @param string $jsonKey The key within the JSON structure
@@ -399,7 +506,7 @@ class Db extends Db\Core
      * 
      * @return self
      */
-    public function with(string $table, string $foreignKey = null)
+    public function with(string $table, ?string $foreignKey = null)
     {
         $foreignKey ??= Utils::basicSingularize($table) . '_id';
 

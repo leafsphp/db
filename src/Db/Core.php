@@ -37,9 +37,15 @@ class Core
     protected $table = null;
 
     /**
-     * leaf db connection instance
+     * Current connection to use for db
+     * @var string|null
      */
-    protected $connection = null;
+    protected $currentConnection = null;
+
+    /**
+     * List of connected db instances
+     */
+    protected $connections = [];
 
     /**
      * Errors caught in leaf db
@@ -130,8 +136,7 @@ class Core
         string $password = '',
         string $dbtype = 'mysql',
         array $pdoOptions = []
-    ): Core {
-
+    ): \PDO {
         if (is_array($host)) {
             $this->config($host);
         } else {
@@ -158,12 +163,11 @@ class Core
             );
 
             $connection->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
-            $this->connection = $connection;
+
+            return $connection;
         } catch (\Throwable $th) {
             throw $th;
         }
-
-        return $this;
     }
 
     /**
@@ -184,16 +188,41 @@ class Core
         string $dbtype = 'mysql',
         array $pdoOptions = []
     ): Core {
+        if (!is_array($host)) {
+            $this->config([
+                'deferred' => [
+                    'host' => $host,
+                    'dbname' => $dbname,
+                    'username' => $user,
+                    'password' => $password,
+                    'dbtype' => $dbtype,
+                    'pdoOptions' => $pdoOptions,
+                ],
+            ]);
+        } else {
+            $this->config([
+                'deferred' => $host,
+            ]);
+        }
+
+        return $this;
+    }
+
+    /**
+     * Add a list of database connections
+     *
+     * @param array $connections List of database connections
+     * @return Core
+     */
+    public function addConnections(array $connections, ?string $default = null): Core
+    {
         $this->config([
-            'deferred' => [
-                $host,
-                $dbname,
-                $user,
-                $password,
-                $dbtype,
-                $pdoOptions,
-            ],
+            'connections' => array_merge($this->config('connections') ?? [], $connections),
         ]);
+
+        if ($default) {
+            $this->config(['deferred' => $connections[$default]]);
+        }
 
         return $this;
     }
@@ -228,12 +257,12 @@ class Core
     {
         return $this->connect(
             [
-                'dbtype' => $this->env('DB_CONNECTION') ? $this->env('DB_CONNECTION') : 'mysql',
+                'dbtype' => $this->env('DB_CONNECTION') ?: 'mysql',
                 'charset' => $this->env('DB_CHARSET'),
-                'port' => $this->env('DB_PORT') ? $this->env('DB_PORT') : '3306',
-                'host' => $this->env('DB_HOST') ? $this->env('DB_HOST') : '127.0.0.1',
-                'username' => $this->env('DB_USERNAME') ? $this->env('DB_USERNAME') : 'root',
-                'password' => $this->env('DB_PASSWORD') ? $this->env('DB_PASSWORD') : '',
+                'port' => $this->env('DB_PORT') ?: '3306',
+                'host' => $this->env('DB_HOST') ?: '127.0.0.1',
+                'username' => $this->env('DB_USERNAME') ?: 'root',
+                'password' => $this->env('DB_PASSWORD') ?: '',
                 'dbname' => $this->env('DB_DATABASE'),
             ],
             '',
@@ -299,21 +328,41 @@ class Core
     }
 
     /**
+     * Set the current connection to use for queries
+     * @param string|null $connection The name of the connection to use
+     * @return Core
+     */
+    public function use(?string $connection = null)
+    {
+        $this->currentConnection = $connection;
+        return $this;
+    }
+
+
+    /**
      * Return the database connection
      *
-     * @param \PDO|null $connection Manual instance of PDO connection
+     * @param \PDO|string|null $connection Manual instance of PDO connection
      */
-    public function connection(?\PDO $connection = null)
+    public function connection($connection = null)
     {
-        if (!$connection) {
-            if (!$this->connection && $this->config('deferred')) {
-                $this->connectSync(...((array) $this->config('deferred')));
-            }
-
-            return $this->connection;
+        if (is_object($connection)) {
+            return $this->connections['default'] = $connection;
         }
 
-        $this->connection = $connection;
+        if (is_string($connection)) {
+            if (!($this->connections[$connection] ?? false)) {
+                $this->connections[$connection] = $this->connectSync($this->config('connections')[$connection]);
+            }
+
+            return $this->connections[$connection];
+        }
+
+        if (!($this->connection['default'] ?? false) && $this->config('deferred')) {
+            $this->connections['default'] = $this->connectSync($this->config('deferred'));
+        }
+
+        return $this->connections['default'];
     }
 
     /**
@@ -321,7 +370,7 @@ class Core
      */
     public function close(): void
     {
-        $this->connection = null;
+        $this->connections[$this->currentConnection ?? 'default'] = null;
     }
 
     /**
@@ -331,7 +380,7 @@ class Core
      */
     public function lastInsertId($name = null)
     {
-        return $this->connection()->lastInsertId();
+        return $this->connection($this->currentConnection)->lastInsertId($name);
     }
 
     /**
@@ -405,7 +454,7 @@ class Core
      */
     public function execute()
     {
-        if ($this->connection() === null) {
+        if ($this->connection($this->currentConnection) === null) {
             trigger_error('Initialise your database first with connect()');
         }
 
@@ -423,7 +472,7 @@ class Core
                         continue;
                     }
 
-                    if ($this->connection()->query("SELECT * FROM {$state['table']} WHERE $unique='{$state['params'][$unique]}'")->fetch(\PDO::FETCH_ASSOC)) {
+                    if ($this->connection($this->currentConnection)->query("SELECT * FROM {$state['table']} WHERE $unique='{$state['params'][$unique]}'")->fetch(\PDO::FETCH_ASSOC)) {
                         $this->errors[$unique] = "$unique already exists";
                     }
                 }
@@ -437,9 +486,9 @@ class Core
         }
 
         if (count($state['bindings']) === 0) {
-            $this->queryResult = $this->connection()->query($state['query']);
+            $this->queryResult = $this->connection($this->currentConnection)->query($state['query']);
         } else {
-            $stmt = $this->connection()->prepare($state['query']);
+            $stmt = $this->connection($this->currentConnection)->prepare($state['query']);
             $stmt->execute($state['bindings']);
 
             $this->queryResult = $stmt;
