@@ -278,7 +278,7 @@ class Core
      * @param string $name
      * @return string|bool
      */
-    private function env(string $name): string|bool
+    private function env(string $name)
     {
         // If `_env` function of Leaf is defined, use it.
         if (function_exists('_env')) {
