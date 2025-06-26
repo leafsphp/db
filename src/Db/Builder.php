@@ -99,6 +99,7 @@ class Builder
             $parts = explode(' OFFSET ', $query);
             $query = implode(" OFFSET $number ", $parts);
         }
+
         return $query;
     }
 
@@ -139,6 +140,57 @@ class Builder
 
         return $query;
     }
+
+    /**
+     * Adds advanced where clauses like IN, NOT IN, BETWEEN
+     *
+     * @param string $query The current query
+     * @param string $column The column to apply the condition on
+     * @param string $type Type of condition: in, notIn, between
+     * @param array $values Values for the condition
+     * @param string $operation Operation to join with existing WHERE: AND/OR
+     * @return string Modified query
+     */
+    public static function whereAdvanced(
+        string $query,
+        string $column,
+        string $type,
+        array $values,
+        string $operation = 'AND'
+    ): string {
+        $query .= (strpos($query, ' WHERE ') === false) ? ' WHERE ' : " $operation ";
+
+        $type = strtolower($type);
+
+        switch ($type) {
+            case 'in':
+                $placeholders = implode(', ', array_fill(0, count($values), '?'));
+                $query .= "$column IN ($placeholders)";
+                break;
+
+            case 'notin':
+            case 'not in':
+                $placeholders = implode(', ', array_fill(0, count($values), '?'));
+                $query .= "$column NOT IN ($placeholders)";
+                break;
+
+            case 'between':
+                if (count($values) !== 2) {
+                    throw new \InvalidArgumentException("BETWEEN requires exactly 2 values.");
+                }
+
+                $query .= "$column BETWEEN ? AND ?";
+
+                break;
+
+            default:
+                throw new \InvalidArgumentException("Unsupported where type: $type");
+        }
+
+        static::$bindings = array_merge(static::$bindings, $values);
+        return $query;
+    }
+
 
     /**
      * Builder for params block

@@ -294,12 +294,25 @@ class Db extends Db\Core
      */
     public function where($condition, $comparator = null, $value = null): self
     {
-        $this->query = Builder::where(
-            $this->query,
-            $condition,
-            $value === null ? $comparator : $value,
-            $value === null ? '=' : $comparator
-        );
+        if (
+            is_string($comparator) &&
+            in_array(strtolower($comparator), ['in', 'notin', 'not in', 'between'], true) &&
+            is_array($value)
+        ) {
+            $this->query = Builder::whereAdvanced(
+                $this->query,
+                $condition,
+                strtolower($comparator),
+                $value,
+            );
+        } else {
+            $this->query = Builder::where(
+                $this->query,
+                $condition,
+                $value === null ? $comparator : $value,
+                $value === null ? '=' : $comparator
+            );
+        }
 
         $this->bind(...(Builder::$bindings));
 
@@ -315,13 +328,28 @@ class Db extends Db\Core
      */
     public function orWhere($condition, $comparator = null, $value = null): self
     {
-        $this->query = Builder::where(
-            $this->query,
-            $condition,
-            $value === null ? $comparator : $value,
-            $value === null ? '=' : $comparator,
-            'OR'
-        );
+        if (
+            is_string($comparator) &&
+            in_array(strtolower($comparator), ['in', 'notin', 'not in', 'between'], true) &&
+            is_array($value)
+        ) {
+            $this->query = Builder::whereAdvanced(
+                $this->query,
+                $condition,
+                strtolower($comparator),
+                $value,
+                'OR'
+            );
+        } else {
+            $this->query = Builder::where(
+                $this->query,
+                $condition,
+                $value === null ? $comparator : $value,
+                $value === null ? '=' : $comparator,
+                'OR'
+            );
+        }
+
         $this->bind(...(Builder::$bindings));
 
         return $this;
@@ -384,14 +412,13 @@ class Db extends Db\Core
             ? "JSON_CONTAINS($column, ?, '$.$jsonKey')"
             : "JSON_CONTAINS($column, ?)";
 
-        
         Builder::$bindings[] = $jsonValue;
         $this->query = Builder::where($this->query, $jsonExpression, 1, '=');
         $this->bind(...(Builder::$bindings));
 
         return $this;
     }
-    
+
     /**
      * Add a JSON contains clause with OR comparator to the query
      *
