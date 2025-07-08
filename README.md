@@ -10,7 +10,7 @@
 [![Total Downloads](https://poser.pugx.org/leafs/db/downloads)](https://packagist.org/packages/leafs/db)
 [![License](https://poser.pugx.org/leafs/db/license)](https://packagist.org/packages/leafs/db)
 
-Leaf DB has gone through yet another re-write. This time, Leaf DB focuses on maintaining a cleaner structure with more usable and grounded code. v3 supports more databases like postgres and sqlite, comes with some performance gains and is far more efficient than v1 and v2. It is also independent of the leaf core which makes it suitable for any project you run.
+Leaf DB has gone through yet another re-write. This time, Leaf DB focuses on maintaining a cleaner structure with more usable and grounded code. v4 supports more databases like postgres and sqlite, comes with some performance gains and is far more efficient than v1 and v2. It is also independent of the leaf core which makes it suitable for any project you run.
 
 ## What's new?
 
