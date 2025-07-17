@@ -51,4 +51,4 @@ From there, you can use any db method.
 $users = db()->select('users')->all();
 ```
 
-You can find leaf db's complete documentation [here]([https://leafphp.dev/modules/db/](https://leafphp.dev/docs/database/)). **The docs are still being updated.**
+Checkout [leaf db's complete documentation](https://leafphp.dev/docs/database/).
