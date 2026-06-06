@@ -358,7 +358,7 @@ class Core
             return $this->connections[$connection];
         }
 
-        if (!($this->connection['default'] ?? false) && $this->config('deferred')) {
+        if (!($this->connections['default'] ?? false) && $this->config('deferred')) {
             $this->connections['default'] = $this->connectSync($this->config('deferred'));
         }
 
