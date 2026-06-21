@@ -6,6 +6,22 @@ beforeAll(function () {
     }
 
     $_ENV += require __DIR__ . '/../../.env.example.php';
+
+    $pdo = new \PDO("mysql:host={$_ENV['DB_HOST']};dbname={$_ENV['DB_DATABASE']}", $_ENV['DB_USERNAME'], $_ENV['DB_PASSWORD']);
+
+    $query = '
+        CREATE TABLE IF NOT EXISTS `test` (
+            `id` int(11) NOT NULL AUTO_INCREMENT,
+            `name` varchar(255) NOT NULL,
+            `email` varchar(255) NOT NULL,
+            `password` varchar(255) NOT NULL,
+            `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (`id`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    ';
+
+    $pdo->exec($query);
+    $pdo = null;
 });
 
 it('orders results in ascending order', function () {
