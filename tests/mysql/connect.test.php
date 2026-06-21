@@ -2,7 +2,7 @@
 
 beforeAll(function () {
     if (file_exists(__DIR__ . '/../../.env.php')) {
-        $_ENV = require __DIR__ . '/../../.env.php';
+        $_ENV += require __DIR__ . '/../../.env.php';
     }
 
     $_ENV += require __DIR__ . '/../../.env.example.php';
