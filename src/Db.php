@@ -356,7 +356,7 @@ class Db extends Db\Core
     }
 
     /**
-     * Fetch current query with all related data
+     * Add a JSON where clause to db query
      *
      * @param string $column The JSON column
      * @param string $jsonKey The key within the JSON structure
