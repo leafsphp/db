@@ -30,8 +30,9 @@ it('connects to database', function () {
 
     try {
         $db = new \Leaf\Db();
-        expect($db->connect($_ENV['DB_HOST'], $_ENV['DB_DATABASE'], $_ENV['DB_USERNAME'], $_ENV['DB_PASSWORD']))
-            ->toBeInstanceOf(\Leaf\Db::class);
+        $pdo = $db->connectSync($_ENV['DB_HOST'], $_ENV['DB_DATABASE'], $_ENV['DB_USERNAME'], $_ENV['DB_PASSWORD']);
+        expect($pdo)->toBeInstanceOf(\PDO::class);
+        $db->connection($pdo);
         $db->close();
 
         $success = true;
