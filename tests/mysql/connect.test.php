@@ -1,7 +1,13 @@
 <?php
 
 beforeAll(function () {
-    $pdo = new \PDO('mysql:host=eu-cdbr-west-03.cleardb.net;dbname=heroku_fb1311a639bb407', 'b9607a8a6d5ebb', 'cc589b17');
+    if (file_exists(__DIR__ . '/../../.env.php')) {
+        $_ENV += require __DIR__ . '/../../.env.php';
+    }
+
+    $_ENV += require __DIR__ . '/../../.env.example.php';
+
+    $pdo = new \PDO("mysql:host={$_ENV['DB_HOST']};dbname={$_ENV['DB_DATABASE']}", $_ENV['DB_USERNAME'], $_ENV['DB_PASSWORD']);
 
     $query = '
 		DROP TABLE IF EXISTS `test`;
@@ -24,8 +30,9 @@ it('connects to database', function () {
 
     try {
         $db = new \Leaf\Db();
-        expect($db->connect('eu-cdbr-west-03.cleardb.net', 'heroku_fb1311a639bb407', 'b9607a8a6d5ebb', 'cc589b17'))
-            ->toBeInstanceOf(\PDO::class);
+        $pdo = $db->connectSync($_ENV['DB_HOST'], $_ENV['DB_DATABASE'], $_ENV['DB_USERNAME'], $_ENV['DB_PASSWORD']);
+        expect($pdo)->toBeInstanceOf(\PDO::class);
+        $db->connection($pdo);
         $db->close();
 
         $success = true;
@@ -38,7 +45,7 @@ it('connects to database', function () {
 it('inserts dummy user into `test` table', function () {
     $success = false;
     $db = new \Leaf\Db();
-    $db->connect('eu-cdbr-west-03.cleardb.net', 'heroku_fb1311a639bb407', 'b9607a8a6d5ebb', 'cc589b17');
+    $db->connect($_ENV['DB_HOST'], $_ENV['DB_DATABASE'], $_ENV['DB_USERNAME'], $_ENV['DB_PASSWORD']);
 
     try {
         $db->insert('test')
@@ -67,7 +74,7 @@ it('inserts dummy user into `test` table', function () {
 
 it('selects dummy user from `test` table', function () {
     $db = new \Leaf\Db();
-    $db->connect('eu-cdbr-west-03.cleardb.net', 'heroku_fb1311a639bb407', 'b9607a8a6d5ebb', 'cc589b17');
+    $db->connect($_ENV['DB_HOST'], $_ENV['DB_DATABASE'], $_ENV['DB_USERNAME'], $_ENV['DB_PASSWORD']);
 
     $user = $db->select('test')
         ->where('name', 'Name')

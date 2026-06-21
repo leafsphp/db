@@ -1,8 +1,32 @@
 <?php
 
+beforeAll(function () {
+    if (file_exists(__DIR__ . '/../../.env.php')) {
+        $_ENV += require __DIR__ . '/../../.env.php';
+    }
+
+    $_ENV += require __DIR__ . '/../../.env.example.php';
+
+    $pdo = new \PDO("mysql:host={$_ENV['DB_HOST']};dbname={$_ENV['DB_DATABASE']}", $_ENV['DB_USERNAME'], $_ENV['DB_PASSWORD']);
+
+    $query = '
+        CREATE TABLE IF NOT EXISTS `test` (
+            `id` int(11) NOT NULL AUTO_INCREMENT,
+            `name` varchar(255) NOT NULL,
+            `email` varchar(255) NOT NULL,
+            `password` varchar(255) NOT NULL,
+            `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (`id`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    ';
+
+    $pdo->exec($query);
+    $pdo = null;
+});
+
 it('orders results in ascending order', function () {
     $db = new \Leaf\Db();
-    $db->connect('eu-cdbr-west-03.cleardb.net', 'heroku_fb1311a639bb407', 'b9607a8a6d5ebb', 'cc589b17');
+    $db->connect($_ENV['DB_HOST'], $_ENV['DB_DATABASE'], $_ENV['DB_USERNAME'], $_ENV['DB_PASSWORD']);
 
     $users = $db->select('test')->orderBy("created_at", "asc")->all();
 
@@ -12,7 +36,7 @@ it('orders results in ascending order', function () {
 
 it('orders results in descending order', function () {
     $db = new \Leaf\Db();
-    $db->connect('eu-cdbr-west-03.cleardb.net', 'heroku_fb1311a639bb407', 'b9607a8a6d5ebb', 'cc589b17');
+    $db->connect($_ENV['DB_HOST'], $_ENV['DB_DATABASE'], $_ENV['DB_USERNAME'], $_ENV['DB_PASSWORD']);
 
     $users = $db->select('test')->orderBy("created_at", "desc")->all();
 
@@ -22,7 +46,7 @@ it('orders results in descending order', function () {
 
 it('orders by dummy name and count', function () {
     $db = new \Leaf\Db();
-    $db->connect('eu-cdbr-west-03.cleardb.net', 'heroku_fb1311a639bb407', 'b9607a8a6d5ebb', 'cc589b17');
+    $db->connect($_ENV['DB_HOST'], $_ENV['DB_DATABASE'], $_ENV['DB_USERNAME'], $_ENV['DB_PASSWORD']);
 
     $data = $db->select('test', 'name, COUNT(*)')->groupBy("created_at")->all();
 
@@ -31,7 +55,7 @@ it('orders by dummy name and count', function () {
 
 it('orders by dummy name and count with limit and offset', function () {
     $db = new \Leaf\Db();
-    $db->connect('eu-cdbr-west-03.cleardb.net', 'heroku_fb1311a639bb407', 'b9607a8a6d5ebb', 'cc589b17');
+    $db->connect($_ENV['DB_HOST'], $_ENV['DB_DATABASE'], $_ENV['DB_USERNAME'], $_ENV['DB_PASSWORD']);
 
     $data = $db->select('test', 'name, COUNT(*)')->groupBy("created_at")->limit(1)->offset(1)->all();
 

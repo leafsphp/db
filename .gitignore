@@ -6,6 +6,7 @@ composer.lock
 package-lock.json
 vendor/
 test/
+.env.php
 
 # OS Generated
 .DS_Store*
