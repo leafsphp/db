@@ -1,5 +1,13 @@
 <?php
 
+beforeAll(function () {
+    if (file_exists(__DIR__ . '/../../.env.php')) {
+        $_ENV += require __DIR__ . '/../../.env.php';
+    }
+
+    $_ENV += require __DIR__ . '/../../.env.example.php';
+});
+
 it('orders results in ascending order', function () {
     $db = new \Leaf\Db();
     $db->connect($_ENV['DB_HOST'], $_ENV['DB_DATABASE'], $_ENV['DB_USERNAME'], $_ENV['DB_PASSWORD']);
