@@ -48,5 +48,10 @@
     },
     "require": {
         "ext-pdo": "*"
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-v5.x": "5.0.x-dev"
+        }
     }
 }
