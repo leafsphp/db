@@ -110,7 +110,7 @@ class Utils
             'woman' => 'women',
             'mouse' => 'mice',
             'goose' => 'geese',
-            'ox' => 'oxen'
+            'ox' => 'oxen',
         ];
 
         // Check if the word is irregular (case-insensitive)
@@ -156,7 +156,7 @@ class Utils
             'women' => 'woman',
             'mice' => 'mouse',
             'geese' => 'goose',
-            'oxen' => 'ox'
+            'oxen' => 'ox',
         ];
 
         // Check if the word is an irregular plural (case-insensitive)
@@ -181,6 +181,7 @@ class Utils
             if (preg_match('/wives$/i', $plural)) {
                 return preg_replace('/wives$/i', 'wife', $plural);
             }
+
             return preg_replace('/ves$/i', 'f', $plural);
         }
 

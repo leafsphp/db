@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Leaf\Db;
 
-use Illuminate\Container\Util;
-
 /**
  * Leaf Db [Core]
  * -------------------------
@@ -221,7 +219,11 @@ class Core
         ]);
 
         if ($default) {
-            $this->config(['deferred' => $connections[$default]]);
+            if (!isset($connections[$default])) {
+                trigger_error("Connection '$default' not found in the connections you passed to addConnections()");
+            } else {
+                $this->config(['deferred' => $connections[$default]]);
+            }
         }
 
         return $this;
@@ -255,22 +257,18 @@ class Core
      */
     public function autoConnect(array $pdoOptions = []): Core
     {
-        return $this->connect(
-            [
-                'dbtype' => $this->env('DB_CONNECTION') ?: 'mysql',
-                'charset' => $this->env('DB_CHARSET'),
-                'port' => $this->env('DB_PORT') ?: '3306',
-                'host' => $this->env('DB_HOST') ?: '127.0.0.1',
-                'username' => $this->env('DB_USERNAME') ?: 'root',
-                'password' => $this->env('DB_PASSWORD') ?: '',
-                'dbname' => $this->env('DB_DATABASE'),
-            ],
-            '',
-            '',
-            '',
-            '',
-            $pdoOptions
-        );
+        return $this->connect([
+            'dbtype' => $this->env('DB_CONNECTION') ?: 'mysql',
+            'charset' => $this->env('DB_CHARSET'),
+            'port' => $this->env('DB_PORT') ?: '3306',
+            'host' => $this->env('DB_HOST') ?: '127.0.0.1',
+            'username' => $this->env('DB_USERNAME') ?: 'root',
+            'password' => $this->env('DB_PASSWORD') ?: '',
+            'dbname' => $this->env('DB_DATABASE'),
+            // when config comes in as an array, extra args are ignored —
+            // pdo options have to ride along inside it
+            'pdoOptions' => $pdoOptions,
+        ]);
     }
 
     /**
@@ -335,6 +333,7 @@ class Core
     public function use(?string $connection = null)
     {
         $this->currentConnection = $connection;
+
         return $this;
     }
 
@@ -400,28 +399,16 @@ class Core
      */
     public function config($name, $value = null)
     {
-        if (class_exists('Leaf\App') && function_exists('app')) {
-            if (!$value && is_string($name)) {
-                return $this->config[$name] ?? null;
-            }
-
+        if (is_array($name)) {
             $this->config = array_merge($this->config, $name);
-
-            if (!is_array($name)) {
-                $this->config[$name] = $value;
-            }
-
-            \Leaf\Config::set('db.config', $this->config);
+        } elseif ($value === null) {
+            return $this->config[$name] ?? null;
         } else {
-            if (is_array($name)) {
-                $this->config = array_merge($this->config, $name);
-            } else {
-                if (!$value) {
-                    return $this->config[$name] ?? null;
-                } else {
-                    $this->config[$name] = $value;
-                }
-            }
+            $this->config[$name] = $value;
+        }
+
+        if (class_exists('Leaf\App') && function_exists('app')) {
+            \Leaf\Config::set('db.config', $this->config);
         }
     }
 
@@ -456,6 +443,8 @@ class Core
     {
         if ($this->connection($this->currentConnection) === null) {
             trigger_error('Initialise your database first with connect()');
+
+            return null;
         }
 
         $state = $this->copyState();
@@ -468,11 +457,16 @@ class Core
             if ($IS_UPDATE || $IS_INSERT) {
                 foreach ($state['uniques'] as $unique) {
                     if (!isset($state['params'][$unique])) {
-                        // trigger_error("$unique not found, Add $unique to your insert or update items or check your spelling.");
                         continue;
                     }
 
-                    if ($this->connection($this->currentConnection)->query("SELECT * FROM {$state['table']} WHERE $unique='{$state['params'][$unique]}'")->fetch(\PDO::FETCH_ASSOC)) {
+                    // prepared statement: unique values come straight from
+                    // user input, so they must never be interpolated into sql
+                    $uniqueCheck = $this->connection($this->currentConnection)
+                        ->prepare("SELECT * FROM {$state['table']} WHERE $unique = ?");
+                    $uniqueCheck->execute([$state['params'][$unique]]);
+
+                    if ($uniqueCheck->fetch(\PDO::FETCH_ASSOC)) {
                         $this->errors[$unique] = "$unique already exists";
                     }
                 }
@@ -554,6 +548,14 @@ class Core
 
         $result = $this->queryResult->fetch(\PDO::FETCH_ASSOC);
 
+        // no matching row — bail before decorating a non-result
+        if (!$result) {
+            $this->hidden = [];
+            $this->eager = [];
+
+            return $result;
+        }
+
         if (count($added)) {
             $result = array_merge($result, $added);
         }
@@ -562,7 +564,7 @@ class Core
             foreach ($hidden as $item) {
                 if (isset($result[$item])) {
                     unset($result[$item]);
-                } else if (strpos($item, '.') !== false) {
+                } elseif (strpos($item, '.') !== false) {
                     $hiddenEagerFields[] = explode('.', $item);
                 }
             }
@@ -579,18 +581,22 @@ class Core
                 }
 
                 if ($result[$item['foreignKey']] ?? false) {
-                    $result[$keyName] = $this
+                    $eagerQuery = $this
                         ->connection()
-                        ->query("SELECT * FROM {$item['table']} WHERE id = {$result[$item['foreignKey']]}")
-                        ->fetch(\PDO::FETCH_ASSOC);
+                        ->prepare("SELECT * FROM {$item['table']} WHERE id = ?");
+                    $eagerQuery->execute([$result[$item['foreignKey']]]);
+
+                    $result[$keyName] = $eagerQuery->fetch(\PDO::FETCH_ASSOC);
                 } else {
                     $keyName = $item['table'];
                     $item['foreignKey'] = Utils::basicSingularize($currentTable) . '_id';
 
-                    $result[$keyName] = $this
+                    $eagerQuery = $this
                         ->connection()
-                        ->query("SELECT * FROM {$item['table']} WHERE {$item['foreignKey']} = {$result['id']}")
-                        ->fetchAll(\PDO::FETCH_ASSOC);
+                        ->prepare("SELECT * FROM {$item['table']} WHERE {$item['foreignKey']} = ?");
+                    $eagerQuery->execute([$result['id']]);
+
+                    $result[$keyName] = $eagerQuery->fetchAll(\PDO::FETCH_ASSOC);
                 }
 
                 if (count($hiddenEagerFields)) {
@@ -665,7 +671,7 @@ class Core
                 foreach ($hidden as $item) {
                     if (isset($result[$item])) {
                         unset($result[$item]);
-                    } else if (strpos($item, '.') !== false) {
+                    } elseif (strpos($item, '.') !== false) {
                         $hiddenEagerFields[] = explode('.', $item);
                     }
                 }
@@ -686,19 +692,25 @@ class Core
                     $hiddenEagerFields = array_merge($hiddenEagerFields, \Leaf\Auth\Config::get('hidden'));
                 }
 
+                $eagerPlaceholders = implode(',', array_fill(0, count($eagerForeignKeys), '?'));
+
                 if ($results[0][$item['foreignKey']] ?? false) {
-                    $eagerResults = $this
+                    $eagerQuery = $this
                         ->connection()
-                        ->query("SELECT * FROM {$item['table']} WHERE id IN (" . implode(',', $eagerForeignKeys) . ")")
-                        ->fetchAll(\PDO::FETCH_ASSOC);
+                        ->prepare("SELECT * FROM {$item['table']} WHERE id IN ($eagerPlaceholders)");
+                    $eagerQuery->execute($eagerForeignKeys);
+
+                    $eagerResults = $eagerQuery->fetchAll(\PDO::FETCH_ASSOC);
                 } else {
                     $keyName = $item['table'];
                     $item['foreignKey'] = Utils::basicSingularize($currentTable) . '_id';
 
-                    $eagerResults = $this
+                    $eagerQuery = $this
                         ->connection()
-                        ->query("SELECT * FROM {$item['table']} WHERE {$item['foreignKey']} IN (" . implode(',', $eagerForeignKeys) . ")")
-                        ->fetchAll(\PDO::FETCH_ASSOC);
+                        ->prepare("SELECT * FROM {$item['table']} WHERE {$item['foreignKey']} IN ($eagerPlaceholders)");
+                    $eagerQuery->execute($eagerForeignKeys);
+
+                    $eagerResults = $eagerQuery->fetchAll(\PDO::FETCH_ASSOC);
                 }
 
                 foreach ($results as $key => $result) {
@@ -796,7 +808,7 @@ class Core
             'query' => $this->query,
             'queryResult' => $this->queryResult,
             'config' => $this->config,
-            'connection' => $this->connection,
+            'connections' => $this->connections,
             'bindings' => $this->bindings,
             'hidden' => $this->hidden,
             'added' => $this->added,

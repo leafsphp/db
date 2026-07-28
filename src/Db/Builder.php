@@ -166,17 +166,19 @@ class Builder
             case 'in':
                 $placeholders = implode(', ', array_fill(0, count($values), '?'));
                 $query .= "$column IN ($placeholders)";
+
                 break;
 
             case 'notin':
             case 'not in':
                 $placeholders = implode(', ', array_fill(0, count($values), '?'));
                 $query .= "$column NOT IN ($placeholders)";
+
                 break;
 
             case 'between':
                 if (count($values) !== 2) {
-                    throw new \InvalidArgumentException("BETWEEN requires exactly 2 values.");
+                    throw new \InvalidArgumentException('BETWEEN requires exactly 2 values.');
                 }
 
                 $query .= "$column BETWEEN ? AND ?";
@@ -188,6 +190,7 @@ class Builder
         }
 
         static::$bindings = array_merge(static::$bindings, $values);
+
         return $query;
     }
 

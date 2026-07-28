@@ -30,16 +30,17 @@
     "minimum-stability": "dev",
     "prefer-stable": true,
     "require-dev": {
-        "pestphp/pest": "^1.21",
+        "pestphp/pest": "*",
         "friendsofphp/php-cs-fixer": "^3.14",
-        "leafs/alchemy": "^2.2"
+        "leafs/alchemy": "v5.x-dev"
     },
     "scripts": {
         "format": "vendor/bin/php-cs-fixer fix --config=.php_cs.dist.php --allow-risky=yes",
-        "test": "./vendor/bin/alchemy setup --test",
+        "test": "./vendor/bin/alchemy test",
         "alchemy": "./vendor/bin/alchemy setup",
-        "lint": "./vendor/bin/alchemy setup --lint",
-        "actions": "./vendor/bin/alchemy setup --actions"
+        "lint": "./vendor/bin/alchemy lint",
+        "fmt": "./vendor/bin/alchemy fmt",
+        "ci": "./vendor/bin/alchemy ci"
     },
     "config": {
         "allow-plugins": {
