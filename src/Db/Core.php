@@ -479,6 +479,8 @@ class Core
             }
         }
 
+        $queryStartedAt = microtime(true);
+
         if (count($state['bindings']) === 0) {
             $this->queryResult = $this->connection($this->currentConnection)->query($state['query']);
         } else {
@@ -486,6 +488,12 @@ class Core
             $stmt->execute($state['bindings']);
 
             $this->queryResult = $stmt;
+        }
+
+        if (function_exists('crash')) {
+            crash()->leaveCrumb($state['query'], 'query', [
+                'ms' => round((microtime(true) - $queryStartedAt) * 1000, 2),
+            ], false);
         }
 
         Builder::$bindings = [];
