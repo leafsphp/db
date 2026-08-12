@@ -29,31 +29,27 @@
     },
     "minimum-stability": "dev",
     "prefer-stable": true,
-    "require-dev": {
-        "pestphp/pest": "*",
-        "friendsofphp/php-cs-fixer": "^3.14",
-        "leafs/alchemy": "v5.x-dev"
-    },
-    "scripts": {
-        "format": "vendor/bin/php-cs-fixer fix --config=.php_cs.dist.php --allow-risky=yes",
-        "test": "./vendor/bin/alchemy test",
-        "alchemy": "./vendor/bin/alchemy setup",
-        "lint": "./vendor/bin/alchemy lint",
-        "fmt": "./vendor/bin/alchemy fmt",
-        "ci": "./vendor/bin/alchemy ci"
-    },
-    "config": {
-        "allow-plugins": {
-            "pestphp/pest-plugin": true
-        }
-    },
     "require": {
         "php": "^8.2",
         "ext-pdo": "*"
     },
-    "extra": {
-        "branch-alias": {
-            "dev-v5.x": "5.0.x-dev"
+    "require-dev": {
+        "pestphp/pest": "*",
+        "friendsofphp/php-cs-fixer": "*",
+        "leafs/alchemy": "^5.0"
+    },
+    "scripts": {
+        "alchemy": "@php vendor/bin/alchemy all",
+        "test": "@php vendor/bin/alchemy test",
+        "lint": "@php vendor/bin/alchemy lint",
+        "fmt": "@php vendor/bin/alchemy fmt",
+        "analyse": "@php vendor/bin/alchemy analyse",
+        "refactor": "@php vendor/bin/alchemy refactor",
+        "ci": "@php vendor/bin/alchemy ci"
+    },
+    "config": {
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
         }
     }
 }
