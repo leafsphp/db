@@ -201,3 +201,39 @@ test('unique check is safe against malicious values', function () {
 
     expect($db->select('users')->all())->toHaveCount(4);
 });
+
+test('a connection resolver supplies the PDO lazily', function () {
+    $resolverRuns = 0;
+    $sharedPdo = new PDO('sqlite::memory:');
+
+    $db = new Db();
+    $db->connectionResolver(function () use (&$resolverRuns, $sharedPdo) {
+        $resolverRuns++;
+
+        return $sharedPdo;
+    });
+
+    // registering must not connect — that's the whole point
+    expect($resolverRuns)->toBe(0);
+
+    // first use runs the resolver, later uses reuse the PDO
+    expect($db->connection())->toBe($sharedPdo);
+    expect($db->connection())->toBe($sharedPdo);
+    expect($resolverRuns)->toBe(1);
+});
+
+test('a resolver beats deferred config so borrowed connections win', function () {
+    $sharedPdo = new PDO('sqlite::memory:');
+    $sharedPdo->exec('CREATE TABLE markers (name TEXT)');
+    $sharedPdo->exec("INSERT INTO markers VALUES ('from-resolver')");
+
+    $db = new Db();
+    $db->connect(['dbtype' => 'sqlite', 'dbname' => ':memory:']); // deferred config
+    $db->connectionResolver(fn () => $sharedPdo);
+
+    // queries must land on the resolver's PDO, not a fresh :memory: db —
+    // this is what keeps auth and Eloquent on one sqlite connection
+    $row = $db->query('SELECT name FROM markers')->fetchObj();
+
+    expect($row->name)->toBe('from-resolver');
+});

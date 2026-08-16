@@ -46,6 +46,13 @@ class Core
     protected $connections = [];
 
     /**
+     * Lazy connection factories, keyed by connection name — each returns
+     * a PDO and runs only when its connection is first needed
+     * @var array<string, callable>
+     */
+    protected $connectionResolvers = [];
+
+    /**
      * Errors caught in leaf db
      */
     protected $errors = [];
@@ -326,6 +333,23 @@ class Core
     }
 
     /**
+     * Register a lazy resolver for a connection. The callable must return
+     * a PDO and only runs when the connection is first needed — use this
+     * to share a connection owned by something else (eg Eloquent) without
+     * opening it eagerly.
+     *
+     * @param callable $resolver Returns the PDO for this connection
+     * @param string $name The connection name to resolve
+     * @return Core
+     */
+    public function connectionResolver(callable $resolver, string $name = 'default'): Core
+    {
+        $this->connectionResolvers[$name] = $resolver;
+
+        return $this;
+    }
+
+    /**
      * Set the current connection to use for queries
      * @param string|null $connection The name of the connection to use
      * @return Core
@@ -351,14 +375,20 @@ class Core
 
         if (is_string($connection)) {
             if (!($this->connections[$connection] ?? false)) {
-                $this->connections[$connection] = $this->connectSync($this->config('connections')[$connection]);
+                $this->connections[$connection] = isset($this->connectionResolvers[$connection])
+                    ? ($this->connectionResolvers[$connection])()
+                    : $this->connectSync($this->config('connections')[$connection]);
             }
 
             return $this->connections[$connection];
         }
 
-        if (!($this->connections['default'] ?? false) && $this->config('deferred')) {
-            $this->connections['default'] = $this->connectSync($this->config('deferred'));
+        if (!($this->connections['default'] ?? false)) {
+            if (isset($this->connectionResolvers['default'])) {
+                $this->connections['default'] = ($this->connectionResolvers['default'])();
+            } elseif ($this->config('deferred')) {
+                $this->connections['default'] = $this->connectSync($this->config('deferred'));
+            }
         }
 
         return $this->connections['default'];
