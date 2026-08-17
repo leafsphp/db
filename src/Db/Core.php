@@ -560,13 +560,27 @@ class Core
     {
         $isSelect = stripos(ltrim((string) $this->query), 'select') === 0;
 
-        $this->execute();
+        if (!$isSelect) {
+            $this->execute();
 
-        if ($isSelect) {
-            return count($this->queryResult->fetchAll(\PDO::FETCH_ASSOC));
+            return $this->queryResult->rowCount();
         }
 
-        return $this->queryResult->rowCount();
+        $originalQuery = $this->query;
+        $originalBindings = $this->bindings;
+
+        try {
+            $this->query = "SELECT COUNT(*) FROM ($originalQuery) leaf_count_source";
+            $this->execute();
+
+            return (int) $this->queryResult->fetch(\PDO::FETCH_COLUMN);
+        } catch (\Throwable $th) {
+            $this->query = $originalQuery;
+            $this->bindings = $originalBindings;
+            $this->execute();
+
+            return count($this->queryResult->fetchAll(\PDO::FETCH_ASSOC));
+        }
     }
 
     /**

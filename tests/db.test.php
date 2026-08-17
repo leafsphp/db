@@ -245,5 +245,8 @@ test('count() counts SELECT results on sqlite', function () {
 
     expect($db->select('users')->count())->toBe(3)
         ->and($db->select('users')->where('role', 'admin')->count())->toBe(1)
-        ->and($db->select('users')->where('role', 'nobody')->count())->toBe(0);
+        ->and($db->select('users')->where('role', 'nobody')->count())->toBe(0)
+        // ordered and limited queries count inside the derived table too
+        ->and($db->select('users')->orderBy('name')->count())->toBe(3)
+        ->and($db->select('users')->orderBy('name')->limit(2)->count())->toBe(2);
 });
