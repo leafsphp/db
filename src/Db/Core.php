@@ -558,7 +558,13 @@ class Core
      */
     public function count(): int
     {
+        $isSelect = stripos(ltrim((string) $this->query), 'select') === 0;
+
         $this->execute();
+
+        if ($isSelect) {
+            return count($this->queryResult->fetchAll(\PDO::FETCH_ASSOC));
+        }
 
         return $this->queryResult->rowCount();
     }

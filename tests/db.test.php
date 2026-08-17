@@ -237,3 +237,13 @@ test('a resolver beats deferred config so borrowed connections win', function ()
 
     expect($row->name)->toBe('from-resolver');
 });
+
+test('count() counts SELECT results on sqlite', function () {
+    // PDO rowCount() returns 0 for SELECTs on sqlite — an agent shipped a
+    // feed permanently reading "0 comments" off this
+    $db = testDb();
+
+    expect($db->select('users')->count())->toBe(3)
+        ->and($db->select('users')->where('role', 'admin')->count())->toBe(1)
+        ->and($db->select('users')->where('role', 'nobody')->count())->toBe(0);
+});
