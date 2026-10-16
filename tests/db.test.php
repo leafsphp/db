@@ -250,3 +250,25 @@ test('count() counts SELECT results on sqlite', function () {
         ->and($db->select('users')->orderBy('name')->count())->toBe(3)
         ->and($db->select('users')->orderBy('name')->limit(2)->count())->toBe(2);
 });
+
+test('hidden removes fields whose value is null', function () {
+    // https://github.com/leafsphp/db/issues/42
+    $db = testDb();
+    $db->query('CREATE TABLE tokens (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        email TEXT NOT NULL,
+        reset_token TEXT NULL
+    )')->execute();
+    $db->insert('tokens')->params(['email' => 'mika@leafphp.dev', 'reset_token' => null])->execute();
+    $db->insert('tokens')->params(['email' => 'jane@leafphp.dev', 'reset_token' => null])->execute();
+
+    $row = $db->select('tokens')->where('email', 'mika@leafphp.dev')->hidden('reset_token')->first();
+    expect($row)->not->toHaveKey('reset_token')
+        ->and($row)->toHaveKey('email');
+
+    $rows = $db->select('tokens')->hidden('reset_token')->all();
+    expect($rows)->toHaveCount(2);
+    foreach ($rows as $r) {
+        expect($r)->not->toHaveKey('reset_token');
+    }
+});
