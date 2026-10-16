@@ -620,7 +620,7 @@ class Core
 
         if (count($hidden)) {
             foreach ($hidden as $item) {
-                if (isset($result[$item])) {
+                if (array_key_exists($item, $result)) {
                     unset($result[$item]);
                 } elseif (strpos($item, '.') !== false) {
                     $hiddenEagerFields[] = explode('.', $item);
@@ -727,7 +727,7 @@ class Core
 
             if (count($hidden)) {
                 foreach ($hidden as $item) {
-                    if (isset($result[$item])) {
+                    if (array_key_exists($item, $result)) {
                         unset($result[$item]);
                     } elseif (strpos($item, '.') !== false) {
                         $hiddenEagerFields[] = explode('.', $item);
