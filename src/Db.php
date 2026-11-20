@@ -176,10 +176,16 @@ class Db extends Db\Core
      * Order query items by a specific
      *
      * @param string $column The column to order results by
-     * @param string $direction The direction to order [DESC, ASC]
+     * @param string|\SortDirection $direction The direction to order [DESC, ASC], or a PHP 8.6 SortDirection
      */
-    public function orderBy(string $column, string $direction = 'desc')
+    public function orderBy(string $column, string|\SortDirection $direction = 'desc')
     {
+        // SortDirection only exists on PHP 8.6+. On older versions the class
+        // is never loaded, so this check is simply false.
+        if ($direction instanceof \SortDirection) {
+            $direction = $direction->name === 'Ascending' ? 'asc' : 'desc';
+        }
+
         $this->query = Builder::orderBy($this->query, $column, $direction);
 
         return $this;

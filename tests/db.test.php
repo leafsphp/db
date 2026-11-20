@@ -61,6 +61,16 @@ test('fetching a missing row returns an empty result instead of crashing', funct
     expect($missing)->toBeFalse();
 });
 
+test('orderBy accepts a PHP 8.6 SortDirection', function () {
+    $db = testDb();
+
+    $ascending = $db->select('users')->orderBy('name', \SortDirection::Ascending)->all();
+    $descending = $db->select('users')->orderBy('name', \SortDirection::Descending)->all();
+
+    expect(array_column($ascending, 'name'))->toBe(['Ama', 'Darko', 'Mika']);
+    expect(array_column($descending, 'name'))->toBe(['Mika', 'Darko', 'Ama']);
+})->skip(!enum_exists('SortDirection'), 'SortDirection needs PHP 8.6');
+
 test('orderBy, limit and offset shape the result set', function () {
     $db = testDb();
 
